@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.12.35506.116
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ElectronBot.Standalone.Console", "src\ElectronBot.Standalone.Console\ElectronBot.Standalone.Console.csproj", "{FF98E8CA-1DE9-4527-BD31-63AFFB07771B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ElectronBot.Standalone.Core", "src\ElectronBot.Standalone.Core\ElectronBot.Standalone.Core.csproj", "{DA793913-9103-4443-B394-C377E1C026D7}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{FF98E8CA-1DE9-4527-BD31-63AFFB07771B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FF98E8CA-1DE9-4527-BD31-63AFFB07771B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FF98E8CA-1DE9-4527-BD31-63AFFB07771B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FF98E8CA-1DE9-4527-BD31-63AFFB07771B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DA793913-9103-4443-B394-C377E1C026D7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DA793913-9103-4443-B394-C377E1C026D7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DA793913-9103-4443-B394-C377E1C026D7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DA793913-9103-4443-B394-C377E1C026D7}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
