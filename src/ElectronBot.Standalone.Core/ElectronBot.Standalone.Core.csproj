@@ -7,11 +7,46 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Verdure.Iot.Device" Version="1.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="9.0.1" />
+    <PackageReference Include="NetCoreAudio" Version="2.0.0" />
+    <PackageReference Include="Verdure.Iot.Device" Version="1.0.1" />
+	<PackageReference Include="SkiaSharp" Version="3.116.1" />
+	<PackageReference Include="SkiaSharp.Skottie" Version="3.116.1" />
+	<PackageReference Include="SixLabors.ImageSharp" Version="3.1.6" />
+	<PackageReference Include="Microsoft.CognitiveServices.Speech" Version="1.42.0" />
+	<PackageReference Include="Microsoft.CognitiveServices.Speech.Extension.Embedded.SR" Version="1.42.0" />
+	<PackageReference Include="Microsoft.CognitiveServices.Speech.Extension.Embedded.TTS" Version="1.42.0" />
+	<PackageReference Include="Microsoft.CognitiveServices.Speech.Extension.ONNX.Runtime" Version="1.42.0" />
+	<PackageReference Include="Microsoft.CognitiveServices.Speech.Extension.Telemetry" Version="1.42.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Services\" />
+    <None Update="LottieFiles\activity.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="LottieFiles\ask.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="LottieFiles\file-plus.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="LottieFiles\fish.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="LottieFiles\look.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="LottieFiles\printer.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="LottieFiles\speak.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="LottieFiles\think.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="ModelFiles\keyword_cortana.table">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
-
 </Project>
