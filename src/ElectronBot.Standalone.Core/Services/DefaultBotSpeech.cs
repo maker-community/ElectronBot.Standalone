@@ -33,13 +33,13 @@ public class DefaultBotSpeech : IBotSpeech, IDisposable
     public async Task StartKeywordRecognitionAsync()
     {
         Console.WriteLine($"等待关键字 \"小娜\"...");
-        await recognizer.StartKeywordRecognitionAsync(keywordModel).ConfigureAwait(false);
+        await recognizer.StartKeywordRecognitionAsync(keywordModel);
     }
 
     public async Task StartContinuousRecognitionAsync()
     {
         Console.WriteLine("请说话...");
-        await recognizer.StartContinuousRecognitionAsync().ConfigureAwait(false);
+        await recognizer.StartContinuousRecognitionAsync();
     }
 
     public async Task PlayTextToSpeakerAsync(string text)
@@ -71,14 +71,15 @@ public class DefaultBotSpeech : IBotSpeech, IDisposable
         {
             Console.WriteLine($"关键字检测到: {e.Result.Text}");
             isKeywordDetected = true;
-            await recognizer.StopKeywordRecognitionAsync().ConfigureAwait(false);
-            await StartContinuousRecognitionAsync();
+            await PlayTextToSpeakerAsync("主人你想干嘛");
+            //await recognizer.StopKeywordRecognitionAsync();
+            //await StartContinuousRecognitionAsync();
         }
         else if (e.Result.Reason == ResultReason.RecognizedSpeech)
         {
             Console.WriteLine($"识别到: {e.Result.Text}");
             // 在这里处理用户的输入文本
-            await recognizer.StopContinuousRecognitionAsync().ConfigureAwait(false);
+            await recognizer.StopContinuousRecognitionAsync();
             isKeywordDetected = false;
             await StartKeywordRecognitionAsync();
         }

@@ -7,42 +7,46 @@ using SkiaSharp;
 using SkiaSharp.Skottie;
 using System.Device.Pwm.Drivers;
 using System.Device.Spi;
+using System.Runtime.InteropServices;
 using Verdure.Iot.Device;
 
 namespace ElectronBot.Standalone.Core.Services;
 
 public class DefaultBotPlayer : IBotPlayer, IDisposable
 {
-    private readonly LCD2inch4 _lCD2Inch4;
-    private readonly LCD1inch47 _lCD1Inch47;
+    private readonly LCD2inch4? _lCD2Inch4;
+    private readonly LCD1inch47? _lCD1Inch47;
     private readonly Player _audioPlayer;
     private bool _disposed = false;
 
     public DefaultBotPlayer()
     {
         _audioPlayer = new Player();
-        var pwmBacklight = new SoftwarePwmChannel(pinNumber: 18, frequency: 1000);
-        pwmBacklight.Start();
-        var sender2inch4Device = SpiDevice.Create(new SpiConnectionSettings(0, 0)
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
         {
-            ClockFrequency = 40000000,
-            Mode = SpiMode.Mode0
-        });
-        var sender1inch47Device = SpiDevice.Create(new SpiConnectionSettings(0, 1)
-        {
-            ClockFrequency = 40000000,
-            Mode = SpiMode.Mode0
-        });
-        _lCD2Inch4 = new LCD2inch4(sender2inch4Device, pwmBacklight);
-        _lCD2Inch4.Reset();
-        _lCD2Inch4.Init();
-        _lCD2Inch4.Clear();
-        _lCD2Inch4.BlDutyCycle(50);
+            var pwmBacklight = new SoftwarePwmChannel(pinNumber: 18, frequency: 1000);
+            pwmBacklight.Start();
+            var sender2inch4Device = SpiDevice.Create(new SpiConnectionSettings(0, 0)
+            {
+                ClockFrequency = 40000000,
+                Mode = SpiMode.Mode0
+            });
+            var sender1inch47Device = SpiDevice.Create(new SpiConnectionSettings(0, 1)
+            {
+                ClockFrequency = 40000000,
+                Mode = SpiMode.Mode0
+            });
+            _lCD2Inch4 = new LCD2inch4(sender2inch4Device, pwmBacklight);
+            _lCD2Inch4.Reset();
+            _lCD2Inch4.Init();
+            _lCD2Inch4.Clear();
+            _lCD2Inch4.BlDutyCycle(50);
 
-        _lCD1Inch47 = new LCD1inch47(sender1inch47Device, pwmBacklight);
-        _lCD1Inch47.Init();
-        _lCD1Inch47.Clear();
-        _lCD1Inch47.BlDutyCycle(50);
+            _lCD1Inch47 = new LCD1inch47(sender1inch47Device, pwmBacklight);
+            _lCD1Inch47.Init();
+            _lCD1Inch47.Clear();
+            _lCD1Inch47.BlDutyCycle(50);
+        }
     }
 
     public async Task PlayEmojiToMainScreenAsync(string emojiName)
@@ -57,7 +61,7 @@ public class DefaultBotPlayer : IBotPlayer, IDisposable
             {
                 var progress = animation.Duration.TotalSeconds / (frameCount - i);
                 var frame = RenderLottieFrame(animation, progress, 320, 240);
-                await frame.SaveAsPngAsync(Path.Combine($"frame_{i:D4}.png"));
+                //await frame.SaveAsPngAsync(Path.Combine($"frame_{i:D4}.png"));
                 await ShowImageToMainScreenAsync(frame);
             }
         }
@@ -72,7 +76,10 @@ public class DefaultBotPlayer : IBotPlayer, IDisposable
     {
         image.Mutate(x => x.Rotate(90));
         using Image<Bgr24> converted2inch4Image = image.CloneAs<Bgr24>();
-        _lCD2Inch4.ShowImage(converted2inch4Image);
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+        {
+            _lCD2Inch4?.ShowImage(converted2inch4Image);
+        }  
         return Task.FromResult(true);
     }
 
@@ -80,7 +87,10 @@ public class DefaultBotPlayer : IBotPlayer, IDisposable
     {
         image.Mutate(x => x.Rotate(90));
         using Image<Bgr24> converted1inch47Image = image.CloneAs<Bgr24>();
-        _lCD1Inch47.ShowImage(converted1inch47Image);
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+        {
+            _lCD1Inch47?.ShowImage(converted1inch47Image);
+        }
         return Task.FromResult(true);
     }
 

@@ -10,12 +10,18 @@ var host = Host.CreateDefaultBuilder(args)
                 .AddHostedService<PeriodicTaskService>())
     .Build();
 
-await host.RunAsync();
-
 var botPlayer = host.Services.GetRequiredService<IBotPlayer>();
 
-await botPlayer.PlayEmojiToMainScreenAsync("activity");
+//await botPlayer.PlayEmojiToMainScreenAsync("fish");
 
-await Task.Delay(1000);
+//await Task.Delay(1000);
 
 await botPlayer.PlayEmojiToMainScreenAsync("ask");
+
+var botSpeech = host.Services.GetRequiredService<IBotSpeech>();
+
+await botSpeech.PlayTextToSpeakerAsync("主人你好呀");
+
+await botSpeech.KeywordWakeupAndDialogAsync();
+
+await host.RunAsync();
