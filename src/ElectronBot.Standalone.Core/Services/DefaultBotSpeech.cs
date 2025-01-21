@@ -23,9 +23,11 @@ public class DefaultBotSpeech : IBotSpeech, IDisposable
     {
         var config = SpeechConfig.FromSubscription("key", "region");
         config.SpeechSynthesisVoiceName = "zh-CN-XiaoxiaoMultilingualNeural";
+        config.SpeechRecognitionLanguage = "zh-CN";
+        config.SpeechSynthesisLanguage = "zh-CN";
 
         using var audioConfig = RuntimeInformation.IsOSPlatform(OSPlatform.Linux) ?
-            AudioConfig.FromMicrophoneInput("hw:0,0") : AudioConfig.FromDefaultMicrophoneInput();
+            AudioConfig.FromMicrophoneInput("sysdefault:CARD=CODEC") : AudioConfig.FromDefaultMicrophoneInput();
 
         keywordRecognizer = new SpeechRecognizer(config, audioConfig);
         continuousRecognizer = new SpeechRecognizer(config, audioConfig);
@@ -34,12 +36,12 @@ public class DefaultBotSpeech : IBotSpeech, IDisposable
 
         // 订阅事件
         keywordRecognizer.Recognized += KeywordRecognizer_Recognized;
-        keywordRecognizer.Canceled += Recognizer_Canceled;
-        keywordRecognizer.SessionStopped += Recognizer_SessionStopped;
+        keywordRecognizer.Canceled += KeywordRecognizer_Canceled;
+        keywordRecognizer.SessionStopped += KeywordRecognizer_SessionStopped;
 
         continuousRecognizer.Recognized += ContinuousRecognizer_Recognized;
-        continuousRecognizer.Canceled += Recognizer_Canceled;
-        continuousRecognizer.SessionStopped += Recognizer_SessionStopped;
+        continuousRecognizer.Canceled += ContinuousRecognizer_Canceled;
+        continuousRecognizer.SessionStopped += ContinuousRecognizer_SessionStopped;
     }
 
     public async Task KeywordWakeupAndDialogAsync()
@@ -93,7 +95,7 @@ public class DefaultBotSpeech : IBotSpeech, IDisposable
             isKeywordDetected = true;
             KeywordRecognized?.Invoke(this, EventArgs.Empty);
             await keywordRecognizer.StopKeywordRecognitionAsync();
-            await StartContinuousRecognitionAsync();
+            //await StartContinuousRecognitionAsync();
         }
     }
 
@@ -114,7 +116,7 @@ public class DefaultBotSpeech : IBotSpeech, IDisposable
         }
     }
 
-    private void Recognizer_Canceled(object? sender, SpeechRecognitionCanceledEventArgs e)
+    private async void ContinuousRecognizer_Canceled(object? sender, SpeechRecognitionCanceledEventArgs e)
     {
         Console.WriteLine($"识别取消: 原因={e.Reason}");
         if (e.Reason == CancellationReason.Error)
@@ -123,17 +125,36 @@ public class DefaultBotSpeech : IBotSpeech, IDisposable
             Console.Error.WriteLine($"错误详情: {e.ErrorDetails}");
             if (!isKeywordDetected)
             {
-                StartKeywordRecognitionAsync().Wait();
+                await StartKeywordRecognitionAsync();
             }
         }
     }
 
-    private void Recognizer_SessionStopped(object? sender, SessionEventArgs e)
+    private async void KeywordRecognizer_Canceled(object? sender, SpeechRecognitionCanceledEventArgs e)
+    {
+        Console.WriteLine($"关键词识别取消: 原因={e.Reason}");
+        if (e.Reason == CancellationReason.Error)
+        {
+            Console.Error.WriteLine($"错误代码: {e.ErrorCode}");
+            Console.Error.WriteLine($"错误详情: {e.ErrorDetails}");
+            if (!isKeywordDetected)
+            {
+                await StartKeywordRecognitionAsync();
+            }
+        }
+    }
+
+    private void KeywordRecognizer_SessionStopped(object? sender, SessionEventArgs e)
+    {
+        Console.WriteLine("关键词会话结束");
+    }
+
+    private async void ContinuousRecognizer_SessionStopped(object? sender, SessionEventArgs e)
     {
         Console.WriteLine("会话结束");
         if (!isKeywordDetected)
         {
-            StartKeywordRecognitionAsync().Wait();
+            await StartKeywordRecognitionAsync();
         }
     }
 

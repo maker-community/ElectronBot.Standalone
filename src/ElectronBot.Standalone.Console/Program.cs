@@ -31,14 +31,14 @@ async void BotSpeech_KeywordRecognized(object? sender, EventArgs e)
     var playTextTask = botSpeech.PlayTextToSpeakerAsync("主人我在呢");
 
     await Task.WhenAll(playEmojiTask, playTextTask);
+
+    await botSpeech.StartContinuousRecognitionAsync();
 }
 
 async void BotSpeech_ContinuousRecognitionCompleted(object? sender, string e)
 {
     Console.WriteLine($"用户的问题：{e}");
-    _ = botPlayer.PlayEmojiToMainScreenAsync("think");
-    //模拟问答
-    await Task.Delay(5000);
+    await botPlayer.PlayEmojiToMainScreenAsync("think");
     var playEmojiTask = botPlayer.PlayEmojiToMainScreenAsync("speak");
     var playTextTask = botSpeech.PlayTextToSpeakerAsync($"我是一段示例的问答回答，我是晓晓的声音，但是我是小娜，我的声音很甜，我的主人是绿荫阿广。主人的问题是{e}");
 
