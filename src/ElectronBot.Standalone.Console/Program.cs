@@ -21,9 +21,19 @@ botSpeech.SpeechPlaybackCompleted += BotSpeech_SpeechPlaybackCompleted;
 botSpeech.ContinuousRecognitionStarted += BotSpeech_ContinuousRecognitionStarted;
 botSpeech.ContinuousRecognitionCompleted += BotSpeech_ContinuousRecognitionCompleted;
 
+//while (true)
+//{
+//    await botPlayer.PlayEmojiToMainScreenAsync("speak");
+//    await botPlayer.PlayEmojiToMainScreenAsync("think");
+//    await botPlayer.PlayEmojiToMainScreenAsync("look");
+//    await botPlayer.PlayEmojiToMainScreenAsync("ask");
+//}
+
+
 await botSpeech.KeywordWakeupAndDialogAsync();
 
 await host.RunAsync();
+
 
 async void BotSpeech_KeywordRecognized(object? sender, EventArgs e)
 {
@@ -44,10 +54,9 @@ async void BotSpeech_ContinuousRecognitionCompleted(object? sender, string e)
 
     await Task.WhenAll(playEmojiTask, playTextTask);
 }
-
-async void BotSpeech_ContinuousRecognitionStarted(object? sender, EventArgs e)
+void BotSpeech_ContinuousRecognitionStarted(object? sender, EventArgs e)
 {
-    await botPlayer.PlayEmojiToMainScreenAsync("look");
+    botPlayer.PlayEmojiToMainScreenAsync("look");
 }
 
 void BotSpeech_SpeechPlaybackCompleted(object? sender, EventArgs e)

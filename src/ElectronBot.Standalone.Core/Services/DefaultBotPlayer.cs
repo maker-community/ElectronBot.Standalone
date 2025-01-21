@@ -1,4 +1,5 @@
 ﻿using ElectronBot.Standalone.Core.Contracts;
+using ElectronBot.Standalone.Core.Models;
 using NetCoreAudio;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
@@ -28,12 +29,12 @@ public class DefaultBotPlayer : IBotPlayer, IDisposable
             pwmBacklight.Start();
             var sender2inch4Device = SpiDevice.Create(new SpiConnectionSettings(0, 0)
             {
-                ClockFrequency = 40000000,
+                ClockFrequency = 50000000,
                 Mode = SpiMode.Mode0
             });
             var sender1inch47Device = SpiDevice.Create(new SpiConnectionSettings(0, 1)
             {
-                ClockFrequency = 40000000,
+                ClockFrequency = 50000000,
                 Mode = SpiMode.Mode0
             });
             _lCD2Inch4 = new LCD2inch4(sender2inch4Device, pwmBacklight);
@@ -51,22 +52,32 @@ public class DefaultBotPlayer : IBotPlayer, IDisposable
         }
     }
 
-    public async Task PlayEmojiToMainScreenAsync(string emojiName)
+    public Task PlayEmojiToMainScreenAsync(string emojiName)
     {
         // 读取Lottie JSON文件
         var animation = Animation.Create($"LottieFiles/{emojiName}.json");
         if (animation != null)
         {
+            var list = new List<FaceFrame>();
             //帧数
             var frameCount = animation.OutPoint;
-            for (int i = 0; i < frameCount; i += 2)
+            for (int i = 0; i < frameCount; i++)
             {
                 var progress = animation.Duration.TotalSeconds / (frameCount - i);
                 var frame = RenderLottieFrame(animation, progress, 320, 240);
+                list.Add(new FaceFrame
+                {
+                    FrameBuffer = GetImageBytes(frame)
+                });
                 //await frame.SaveAsPngAsync(Path.Combine($"frame_{i:D4}.png"));
-                await ShowImageToMainScreenAsync(frame);
+                //await ShowImageToMainScreenAsync(frame);
+            }
+            foreach (var item in list)
+            {
+                _lCD2Inch4?.ShowImageBytes(item.FrameBuffer);
             }
         }
+        return Task.CompletedTask;
     }
 
     public Task PlayJointAnglesAsync(float j1, float j2, float j3, float j4, float j5, float j6, bool enable = false)
@@ -104,6 +115,20 @@ public class DefaultBotPlayer : IBotPlayer, IDisposable
     public async Task StopAudioAsync()
     {
         await _audioPlayer.Stop();
+    }
+
+    public byte[] GetImageBytes(Image<Bgra32> image)
+    {
+        image.Mutate(x => x.Rotate(90));
+        using Image<Bgr24> converted2inch4Image = image.CloneAs<Bgr24>();
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+        {
+            if (_lCD2Inch4 != null)
+            {
+                return _lCD2Inch4.GetImageBytes(converted2inch4Image);
+            }
+        }
+        return [];
     }
 
     private static Image<Bgra32> RenderLottieFrame(Animation animation, double progress, int width, int height)

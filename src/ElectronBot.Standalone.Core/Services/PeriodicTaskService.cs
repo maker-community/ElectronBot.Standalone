@@ -58,7 +58,7 @@ public class PeriodicTaskService : BackgroundService
             // 在图片上绘制时间
             image1inch47.Mutate(ctx => ctx.DrawText(displayText, font, Color.White, position));
 
-            await image1inch47.SaveAsPngAsync(Path.Combine($"frame_{DateTime.Now.Ticks}.png"));
+            //await image1inch47.SaveAsPngAsync(Path.Combine($"frame_{DateTime.Now.Ticks}.png"));
             await _botPlayer.ShowImageToSubScreenAsync(image1inch47);
         }
     }
