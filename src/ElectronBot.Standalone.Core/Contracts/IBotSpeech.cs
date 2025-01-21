@@ -12,4 +12,10 @@ public interface IBotSpeech
     Task StartKeywordRecognitionAsync();
     Task StartContinuousRecognitionAsync();
     Task PlayTextToSpeakerAsync(string text);
+
+    // 定义事件
+    event EventHandler KeywordRecognized;
+    event EventHandler ContinuousRecognitionStarted;
+    event EventHandler SpeechPlaybackCompleted; // 声音播放完成事件
+    event EventHandler<string> ContinuousRecognitionCompleted; // ContinuousRecognitionStarted识别完成事件
 }

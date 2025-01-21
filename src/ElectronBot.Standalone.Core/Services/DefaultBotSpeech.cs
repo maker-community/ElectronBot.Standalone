@@ -1,45 +1,64 @@
 ﻿using ElectronBot.Standalone.Core.Contracts;
 using Microsoft.CognitiveServices.Speech;
 using Microsoft.CognitiveServices.Speech.Audio;
+using System.Runtime.InteropServices;
 
 namespace ElectronBot.Standalone.Core.Services;
 
 public class DefaultBotSpeech : IBotSpeech, IDisposable
 {
-    private SpeechRecognizer recognizer;
+    private SpeechRecognizer keywordRecognizer;
+    private SpeechRecognizer continuousRecognizer;
     private KeywordRecognitionModel keywordModel;
     private bool isKeywordDetected = false;
     private bool _disposed = false;
     private SpeechSynthesizer synthesizer;
 
+    public event EventHandler? KeywordRecognized;
+    public event EventHandler? ContinuousRecognitionStarted;
+    public event EventHandler? SpeechPlaybackCompleted;
+    public event EventHandler<string>? ContinuousRecognitionCompleted;
+
     public DefaultBotSpeech()
     {
         var config = SpeechConfig.FromSubscription("key", "region");
-        using var audioConfig = AudioConfig.FromDefaultMicrophoneInput();
-        recognizer = new SpeechRecognizer(config, audioConfig);
+        config.SpeechSynthesisVoiceName = "zh-CN-XiaoxiaoMultilingualNeural";
+
+        using var audioConfig = RuntimeInformation.IsOSPlatform(OSPlatform.Linux) ?
+            AudioConfig.FromMicrophoneInput("hw:0,0") : AudioConfig.FromDefaultMicrophoneInput();
+
+        keywordRecognizer = new SpeechRecognizer(config, audioConfig);
+        continuousRecognizer = new SpeechRecognizer(config, audioConfig);
         synthesizer = new SpeechSynthesizer(config);
         keywordModel = KeywordRecognitionModel.FromFile("ModelFiles/keyword_cortana.table");
-        // 订阅事件
-        recognizer.Recognized += Recognizer_Recognized;
-        recognizer.Canceled += Recognizer_Canceled;
-        recognizer.SessionStopped += Recognizer_SessionStopped;
 
+        // 订阅事件
+        keywordRecognizer.Recognized += KeywordRecognizer_Recognized;
+        keywordRecognizer.Canceled += Recognizer_Canceled;
+        keywordRecognizer.SessionStopped += Recognizer_SessionStopped;
+
+        continuousRecognizer.Recognized += ContinuousRecognizer_Recognized;
+        continuousRecognizer.Canceled += Recognizer_Canceled;
+        continuousRecognizer.SessionStopped += Recognizer_SessionStopped;
     }
+
     public async Task KeywordWakeupAndDialogAsync()
     {
         // 启动关键字识别
         await StartKeywordRecognitionAsync();
     }
+
     public async Task StartKeywordRecognitionAsync()
     {
         Console.WriteLine($"等待关键字 \"小娜\"...");
-        await recognizer.StartKeywordRecognitionAsync(keywordModel);
+        await keywordRecognizer.StartKeywordRecognitionAsync(keywordModel);
     }
 
     public async Task StartContinuousRecognitionAsync()
     {
         Console.WriteLine("请说话...");
-        await recognizer.StartContinuousRecognitionAsync();
+        ContinuousRecognitionStarted?.Invoke(this, EventArgs.Empty);
+        await continuousRecognizer.StartContinuousRecognitionAsync();
     }
 
     public async Task PlayTextToSpeakerAsync(string text)
@@ -49,6 +68,7 @@ public class DefaultBotSpeech : IBotSpeech, IDisposable
             if (result.Reason == ResultReason.SynthesizingAudioCompleted)
             {
                 Console.WriteLine($"Speech synthesized to speaker for text [{text}]");
+                SpeechPlaybackCompleted?.Invoke(this, EventArgs.Empty);
             }
             else if (result.Reason == ResultReason.Canceled)
             {
@@ -65,22 +85,27 @@ public class DefaultBotSpeech : IBotSpeech, IDisposable
         }
     }
 
-    private async void Recognizer_Recognized(object? sender, SpeechRecognitionEventArgs e)
+    private async void KeywordRecognizer_Recognized(object? sender, SpeechRecognitionEventArgs e)
     {
         if (e.Result.Reason == ResultReason.RecognizedKeyword)
         {
             Console.WriteLine($"关键字检测到: {e.Result.Text}");
             isKeywordDetected = true;
-            await PlayTextToSpeakerAsync("主人你想干嘛");
-            //await recognizer.StopKeywordRecognitionAsync();
-            //await StartContinuousRecognitionAsync();
+            KeywordRecognized?.Invoke(this, EventArgs.Empty);
+            await keywordRecognizer.StopKeywordRecognitionAsync();
+            await StartContinuousRecognitionAsync();
         }
-        else if (e.Result.Reason == ResultReason.RecognizedSpeech)
+    }
+
+    private async void ContinuousRecognizer_Recognized(object? sender, SpeechRecognitionEventArgs e)
+    {
+        if (e.Result.Reason == ResultReason.RecognizedSpeech)
         {
             Console.WriteLine($"识别到: {e.Result.Text}");
             // 在这里处理用户的输入文本
-            await recognizer.StopContinuousRecognitionAsync();
+            await continuousRecognizer.StopContinuousRecognitionAsync();
             isKeywordDetected = false;
+            ContinuousRecognitionCompleted?.Invoke(this, e.Result.Text);
             await StartKeywordRecognitionAsync();
         }
         else if (e.Result.Reason == ResultReason.NoMatch)
@@ -119,7 +144,8 @@ public class DefaultBotSpeech : IBotSpeech, IDisposable
             if (disposing)
             {
                 // 释放托管资源
-                recognizer?.Dispose();
+                keywordRecognizer?.Dispose();
+                continuousRecognizer?.Dispose();
                 synthesizer?.Dispose();
                 keywordModel?.Dispose();
             }

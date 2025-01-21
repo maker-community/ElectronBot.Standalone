@@ -39,11 +39,13 @@ public class DefaultBotPlayer : IBotPlayer, IDisposable
             _lCD2Inch4 = new LCD2inch4(sender2inch4Device, pwmBacklight);
             _lCD2Inch4.Reset();
             _lCD2Inch4.Init();
+            _lCD2Inch4.SetWindows(0, 0, LCD2inch4.Width, LCD2inch4.Height);
             _lCD2Inch4.Clear();
             _lCD2Inch4.BlDutyCycle(50);
 
             _lCD1Inch47 = new LCD1inch47(sender1inch47Device, pwmBacklight);
             _lCD1Inch47.Init();
+            _lCD1Inch47.SetWindows(0, 0, LCD1inch47.Width, LCD1inch47.Height);
             _lCD1Inch47.Clear();
             _lCD1Inch47.BlDutyCycle(50);
         }
@@ -57,7 +59,7 @@ public class DefaultBotPlayer : IBotPlayer, IDisposable
         {
             //帧数
             var frameCount = animation.OutPoint;
-            for (int i = 0; i < frameCount; i++)
+            for (int i = 0; i < frameCount; i += 2)
             {
                 var progress = animation.Duration.TotalSeconds / (frameCount - i);
                 var frame = RenderLottieFrame(animation, progress, 320, 240);
@@ -78,8 +80,8 @@ public class DefaultBotPlayer : IBotPlayer, IDisposable
         using Image<Bgr24> converted2inch4Image = image.CloneAs<Bgr24>();
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
         {
-            _lCD2Inch4?.ShowImage(converted2inch4Image);
-        }  
+            _lCD2Inch4?.ShowImageData(converted2inch4Image);
+        }
         return Task.FromResult(true);
     }
 
@@ -89,7 +91,7 @@ public class DefaultBotPlayer : IBotPlayer, IDisposable
         using Image<Bgr24> converted1inch47Image = image.CloneAs<Bgr24>();
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
         {
-            _lCD1Inch47?.ShowImage(converted1inch47Image);
+            _lCD1Inch47?.ShowImageData(converted1inch47Image);
         }
         return Task.FromResult(true);
     }
