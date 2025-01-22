@@ -4,6 +4,7 @@ using BotSharp.Abstraction.Users;
 using BotSharp.Core;
 using BotSharp.Logger;
 using ElectronBot.Standalone.Core.Contracts;
+using ElectronBot.Standalone.Core.Models;
 using ElectronBot.Standalone.Core.Repositories;
 using ElectronBot.Standalone.Core.Services;
 using ElectronBot.Standalone.DataStorage;
@@ -28,6 +29,11 @@ builder.Configuration.Bind("Database", brainSettings);
 brainSettings.BraincaseLiteDB = "braincase.db";
 
 builder.Services.AddSingleton(brainSettings);
+
+var botSpeechSettings = new BotSpeechSetting();
+builder.Configuration.Bind("BotSpeechSetting", botSpeechSettings);
+builder.Services.AddSingleton(botSpeechSettings);
+
 builder.Services.AddScoped<BraincaseLiteDBContext>();
 builder.Services.AddSingleton<IBotPlayer, DefaultBotPlayer>();
 builder.Services.AddSingleton<IBotSpeech, DefaultBotSpeech>();

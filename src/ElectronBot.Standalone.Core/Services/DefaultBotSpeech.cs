@@ -1,4 +1,5 @@
 ﻿using ElectronBot.Standalone.Core.Contracts;
+using ElectronBot.Standalone.Core.Models;
 using Microsoft.CognitiveServices.Speech;
 using Microsoft.CognitiveServices.Speech.Audio;
 using System.Runtime.InteropServices;
@@ -19,20 +20,20 @@ public class DefaultBotSpeech : IBotSpeech, IDisposable
     public event EventHandler? SpeechPlaybackCompleted;
     public event EventHandler<string>? ContinuousRecognitionCompleted;
 
-    public DefaultBotSpeech()
+    public DefaultBotSpeech(BotSpeechSetting setting)
     {
-        var config = SpeechConfig.FromSubscription("key", "eastus");
-        config.SpeechSynthesisVoiceName = "zh-CN-XiaoxiaoMultilingualNeural";
-        config.SpeechRecognitionLanguage = "zh-CN";
-        config.SpeechSynthesisLanguage = "zh-CN";
+        var config = SpeechConfig.FromSubscription(setting.SubscriptionKey, setting.Region);
+        config.SpeechSynthesisVoiceName = setting.SpeechSynthesisVoiceName;
+        config.SpeechRecognitionLanguage = setting.SpeechRecognitionLanguage;
+        config.SpeechSynthesisLanguage = setting.SpeechSynthesisLanguage;
 
         using var audioConfig = RuntimeInformation.IsOSPlatform(OSPlatform.Linux) ?
-            AudioConfig.FromMicrophoneInput("sysdefault:CARD=CODEC") : AudioConfig.FromDefaultMicrophoneInput();
+            AudioConfig.FromMicrophoneInput(setting.MicrophoneInput) : AudioConfig.FromDefaultMicrophoneInput();
 
         keywordRecognizer = new SpeechRecognizer(config, audioConfig);
         continuousRecognizer = new SpeechRecognizer(config, audioConfig);
         synthesizer = new SpeechSynthesizer(config);
-        keywordModel = KeywordRecognitionModel.FromFile(Path.Combine(AppContext.BaseDirectory, "ModelFiles/keyword_cortana.table"));
+        keywordModel = KeywordRecognitionModel.FromFile(Path.Combine(AppContext.BaseDirectory, setting.KeywordModelFilePath));
 
         // 订阅事件
         keywordRecognizer.Recognized += KeywordRecognizer_Recognized;
@@ -93,8 +94,8 @@ public class DefaultBotSpeech : IBotSpeech, IDisposable
         {
             Console.WriteLine($"关键字检测到: {e.Result.Text}");
             isKeywordDetected = true;
-            KeywordRecognized?.Invoke(this, EventArgs.Empty);
             await keywordRecognizer.StopKeywordRecognitionAsync();
+            KeywordRecognized?.Invoke(this, EventArgs.Empty);
             //await StartContinuousRecognitionAsync();
         }
     }
@@ -108,7 +109,7 @@ public class DefaultBotSpeech : IBotSpeech, IDisposable
             await continuousRecognizer.StopContinuousRecognitionAsync();
             isKeywordDetected = false;
             ContinuousRecognitionCompleted?.Invoke(this, e.Result.Text);
-            await StartKeywordRecognitionAsync();
+            //await StartKeywordRecognitionAsync();
         }
         else if (e.Result.Reason == ResultReason.NoMatch)
         {

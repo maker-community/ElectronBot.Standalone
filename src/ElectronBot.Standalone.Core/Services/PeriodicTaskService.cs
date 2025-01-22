@@ -116,7 +116,7 @@ public class PeriodicTaskService : BackgroundService
     async void BotSpeech_KeywordRecognized(object? sender, EventArgs e)
     {
         //var playEmojiTask = _botPlayer.PlayEmojiToMainScreenAsync("ask");
-        var playTextTask = _botSpeech.PlayTextToSpeakerAsync("主人我在呢");
+        await _botSpeech.PlayTextToSpeakerAsync("主人我在呢");
 
         //await Task.WhenAll(playEmojiTask, playTextTask);
 
@@ -132,10 +132,11 @@ public class PeriodicTaskService : BackgroundService
         {
             var botCopilot = scope.ServiceProvider.GetRequiredService<IBotCopilot>();
             var llmResult = await botCopilot.ChatToCopilotAsync(e);
-            var playTextTask = _botSpeech.PlayTextToSpeakerAsync(llmResult);
+            await _botSpeech.PlayTextToSpeakerAsync(llmResult);
             //var playEmojiTask = _botPlayer.PlayEmojiToMainScreenAsync("speak");
             //await Task.WhenAll(playEmojiTask, playTextTask);
         }
+        await _botSpeech.KeywordWakeupAndDialogAsync();
     }
     void BotSpeech_ContinuousRecognitionStarted(object? sender, EventArgs e)
     {
