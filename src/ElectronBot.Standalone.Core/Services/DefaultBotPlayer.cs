@@ -19,7 +19,7 @@ public class DefaultBotPlayer : IBotPlayer, IDisposable
     private readonly LCD1inch47? _lCD1Inch47;
     private readonly Player _audioPlayer;
     private bool _disposed = false;
-
+    private readonly SemaphoreSlim _emojiSemaphore = new SemaphoreSlim(1, 1);
     public DefaultBotPlayer()
     {
         _audioPlayer = new Player();
@@ -52,32 +52,44 @@ public class DefaultBotPlayer : IBotPlayer, IDisposable
         }
     }
 
-    public Task PlayEmojiToMainScreenAsync(string emojiName)
+    public async Task PlayEmojiToMainScreenAsync(string emojiName)
     {
-        // 读取Lottie JSON文件
-        var animation = Animation.Create($"LottieFiles/{emojiName}.json");
-        if (animation != null)
+        await _emojiSemaphore.WaitAsync();
+        try
         {
-            var list = new List<FaceFrame>();
-            //帧数
-            var frameCount = animation.OutPoint;
-            for (int i = 0; i < frameCount; i++)
+            // 读取Lottie JSON文件
+            var animation = Animation.Create(Path.Combine(AppContext.BaseDirectory, "LottieFiles", $"{emojiName}.json"));
+            if (animation != null)
             {
-                var progress = animation.Duration.TotalSeconds / (frameCount - i);
-                var frame = RenderLottieFrame(animation, progress, 320, 240);
-                list.Add(new FaceFrame
+                animation.Seek(0);
+                var list = new List<FaceFrame>();
+                //帧数
+                var frameCount = animation.OutPoint;
+                Console.WriteLine($"frame count :{frameCount}");
+                Console.WriteLine($"fps :{animation.Fps}");
+                Console.WriteLine($"Duration :{animation.Duration.TotalSeconds}");
+                for (int i = 0; i < frameCount; i++)
                 {
-                    FrameBuffer = GetImageBytes(frame)
-                });
-                //await frame.SaveAsPngAsync(Path.Combine($"frame_{i:D4}.png"));
-                //await ShowImageToMainScreenAsync(frame);
-            }
-            foreach (var item in list)
-            {
-                _lCD2Inch4?.ShowImageBytes(item.FrameBuffer);
+                    var progress = animation.Duration.TotalSeconds / (frameCount - i);
+                    var frame = RenderLottieFrame(animation, progress, 320, 240);
+                    list.Add(new FaceFrame
+                    {
+                        FrameBuffer = GetImageBytes(frame)
+                    });
+                    //await frame.SaveAsPngAsync(Path.Combine($"frame_{i:D4}.png"));
+                    //await ShowImageToMainScreenAsync(frame);
+                }
+                foreach (var item in list)
+                {
+                    _lCD2Inch4?.ShowImageBytes(item.FrameBuffer);
+                    await Task.Delay(14);
+                }
             }
         }
-        return Task.CompletedTask;
+        finally
+        {
+            _emojiSemaphore.Release();
+        }
     }
 
     public Task PlayJointAnglesAsync(float j1, float j2, float j3, float j4, float j5, float j6, bool enable = false)

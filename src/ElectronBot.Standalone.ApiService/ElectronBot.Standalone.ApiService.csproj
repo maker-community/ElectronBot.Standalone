@@ -1,15 +1,11 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
     <TargetFramework>net8.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>dad4c2f7-85bd-4e84-8e95-273f0a54f0d4</UserSecretsId>
   </PropertyGroup>
-
-  <ItemGroup>
-    <None Remove="Asserts\SmileySans-Oblique.ttf" />
-  </ItemGroup>
 
   <ItemGroup>
     <Content Include="Asserts\SmileySans-Oblique.ttf">
@@ -18,20 +14,21 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.1" />
-    <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.1" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
   </ItemGroup>
-
   <ItemGroup>
-    <ProjectReference Include="..\ElectronBot.Standalone.Core\ElectronBot.Standalone.Core.csproj" />
     <ProjectReference Include="..\ElectronBot.Standalone.DataStorage\ElectronBot.Standalone.DataStorage.csproj" />
     <ProjectReference Include="..\Verdure.Braincase.Copilot.Plugin\Verdure.Braincase.Copilot.Plugin.csproj" />
   </ItemGroup>
-
   <ItemGroup>
     <None Update="Asserts\verdure.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="botsharp.db">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="braincase.db">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
-
 </Project>

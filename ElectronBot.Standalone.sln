@@ -7,6 +7,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ElectronBot.Standalone.Cons
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ElectronBot.Standalone.Core", "src\ElectronBot.Standalone.Core\ElectronBot.Standalone.Core.csproj", "{DA793913-9103-4443-B394-C377E1C026D7}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ElectronBot.Standalone.ApiService", "src\ElectronBot.Standalone.ApiService\ElectronBot.Standalone.ApiService.csproj", "{01729608-5F03-4E3C-AB50-E95A412738A2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Verdure.Braincase.Copilot.Plugin", "src\Verdure.Braincase.Copilot.Plugin\Verdure.Braincase.Copilot.Plugin.csproj", "{37E2FEFB-EF5B-479D-86DB-833973205410}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ElectronBot.Standalone.DataStorage", "src\ElectronBot.Standalone.DataStorage\ElectronBot.Standalone.DataStorage.csproj", "{8C58F422-5E51-4DE4-80A5-0DB1A6B17B72}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +27,18 @@ Global
 		{DA793913-9103-4443-B394-C377E1C026D7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DA793913-9103-4443-B394-C377E1C026D7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DA793913-9103-4443-B394-C377E1C026D7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{01729608-5F03-4E3C-AB50-E95A412738A2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{01729608-5F03-4E3C-AB50-E95A412738A2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{01729608-5F03-4E3C-AB50-E95A412738A2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{01729608-5F03-4E3C-AB50-E95A412738A2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{37E2FEFB-EF5B-479D-86DB-833973205410}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{37E2FEFB-EF5B-479D-86DB-833973205410}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{37E2FEFB-EF5B-479D-86DB-833973205410}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{37E2FEFB-EF5B-479D-86DB-833973205410}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8C58F422-5E51-4DE4-80A5-0DB1A6B17B72}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8C58F422-5E51-4DE4-80A5-0DB1A6B17B72}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8C58F422-5E51-4DE4-80A5-0DB1A6B17B72}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8C58F422-5E51-4DE4-80A5-0DB1A6B17B72}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

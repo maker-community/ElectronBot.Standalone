@@ -1,0 +1,6 @@
+@ElectronBot.Standalone.ApiService_HostAddress = http://localhost:5223
+
+GET {{ElectronBot.Standalone.ApiService_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

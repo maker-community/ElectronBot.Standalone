@@ -21,7 +21,7 @@ public class DefaultBotSpeech : IBotSpeech, IDisposable
 
     public DefaultBotSpeech()
     {
-        var config = SpeechConfig.FromSubscription("key", "region");
+        var config = SpeechConfig.FromSubscription("key", "eastus");
         config.SpeechSynthesisVoiceName = "zh-CN-XiaoxiaoMultilingualNeural";
         config.SpeechRecognitionLanguage = "zh-CN";
         config.SpeechSynthesisLanguage = "zh-CN";
@@ -32,7 +32,7 @@ public class DefaultBotSpeech : IBotSpeech, IDisposable
         keywordRecognizer = new SpeechRecognizer(config, audioConfig);
         continuousRecognizer = new SpeechRecognizer(config, audioConfig);
         synthesizer = new SpeechSynthesizer(config);
-        keywordModel = KeywordRecognitionModel.FromFile("ModelFiles/keyword_cortana.table");
+        keywordModel = KeywordRecognitionModel.FromFile(Path.Combine(AppContext.BaseDirectory, "ModelFiles/keyword_cortana.table"));
 
         // 订阅事件
         keywordRecognizer.Recognized += KeywordRecognizer_Recognized;
