@@ -396,3 +396,5 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
+/src/ElectronBot.Standalone.Core/EmojiFiles/normal.json
+/src/ElectronBot.Standalone.Core/EmojiFiles/anger.json
