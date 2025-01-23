@@ -32,9 +32,9 @@ public class DefaultBotPlayer : IBotPlayer, IDisposable
 
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
         {
-            _gpioController = new GpioController();
-            _gpioController.OpenPin(_csPin2Inch4, PinMode.Output);
-            _gpioController.OpenPin(_csPin1Inch47, PinMode.Output);
+            //_gpioController = new GpioController();
+            //_gpioController.OpenPin(_csPin2Inch4, PinMode.Output);
+            //_gpioController.OpenPin(_csPin1Inch47, PinMode.Output);
 
             var pwmBacklight = new SoftwarePwmChannel(pinNumber: 18, frequency: 1000);
             pwmBacklight.Start();
@@ -53,21 +53,21 @@ public class DefaultBotPlayer : IBotPlayer, IDisposable
             _lCD2Inch4.Init();
             _lCD2Inch4.SetWindows(0, 0, LCD2inch4.Width, LCD2inch4.Height);
             _lCD2Inch4.Clear();
-            _lCD2Inch4.BlDutyCycle(50);
+            //_lCD2Inch4.BlDutyCycle(50);
 
             _lCD1Inch47 = new LCD1inch47(sender1inch47Device, pwmBacklight);
             _lCD1Inch47.Init();
             _lCD1Inch47.SetWindows(0, 0, LCD1inch47.Width, LCD1inch47.Height);
             _lCD1Inch47.Clear();
-            _lCD1Inch47.BlDutyCycle(50);
+            //_lCD1Inch47.BlDutyCycle(50);
         }
     }
 
     private void SelectScreen(int csPin)
     {
-        _gpioController?.Write(_csPin2Inch4, PinValue.High);
-        _gpioController?.Write(_csPin1Inch47, PinValue.High);
-        _gpioController?.Write(csPin, PinValue.Low);
+        //_gpioController?.Write(_csPin2Inch4, PinValue.High);
+        //_gpioController?.Write(_csPin1Inch47, PinValue.High);
+        //_gpioController?.Write(csPin, PinValue.Low);
     }
 
     public async Task PlayEmojiToMainScreenAsync(string emojiName)

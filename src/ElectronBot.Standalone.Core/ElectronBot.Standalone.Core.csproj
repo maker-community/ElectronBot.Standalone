@@ -8,12 +8,16 @@
 
   <ItemGroup>
     <None Remove="EmojiFiles\anger.json" />
+    <None Remove="EmojiFiles\hello.json" />
     <None Remove="EmojiFiles\normal.json" />
     <None Remove="LottieFiles\look.json" />
   </ItemGroup>
 
   <ItemGroup>
     <Content Include="EmojiFiles\anger.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="EmojiFiles\hello.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="EmojiFiles\normal.json">

@@ -36,7 +36,9 @@ public class PeriodicTaskService : BackgroundService
         await ShowDateTimeAsync();
         _ = Task.Run(() => _botPlayer.PlayEmojiToMainScreenByJsonFileAsync("normal"));
 
-        _timer = new Timer(DoWork, null, TimeSpan.Zero, TimeSpan.FromSeconds(5));
+        _ = Task.Run(() => _botSpeech.PlayTextToSpeakerAsync("我是小娜，很高兴为主人服务呢"));
+
+        //_timer = new Timer(DoWork, null, TimeSpan.Zero, TimeSpan.FromSeconds(5));
 
         stoppingToken.Register(() => _logger.LogInformation("YourBackgroundService is stopping."));
 
@@ -52,10 +54,10 @@ public class PeriodicTaskService : BackgroundService
         botSpeech.ContinuousRecognitionCompleted += BotSpeech_ContinuousRecognitionCompleted;
         await botSpeech.KeywordWakeupAndDialogAsync();
     }
-    private async void DoWork(object? state)
+    private void DoWork(object? state)
     {
         _logger.LogInformation("YourBackgroundService is doing background work.");
-        await ShowDateTimeAsync();
+        //await ShowDateTimeAsync();
     }
 
     private async Task ShowDateTimeAsync()
@@ -104,7 +106,7 @@ public class PeriodicTaskService : BackgroundService
 
     async void BotSpeech_KeywordRecognized(object? sender, EventArgs e)
     {
-        _ = Task.Run(() => _botPlayer.PlayEmojiToMainScreenByJsonFileAsync("anger"));
+        _ = Task.Run(() => _botPlayer.PlayEmojiToMainScreenByJsonFileAsync("hello"));
         await _botSpeech.PlayTextToSpeakerAsync("主人我在呢");
         await _botSpeech.StartContinuousRecognitionAsync();
     }
@@ -112,20 +114,19 @@ public class PeriodicTaskService : BackgroundService
     async void BotSpeech_ContinuousRecognitionCompleted(object? sender, string e)
     {
         Console.WriteLine($"用户的问题：{e}");
-        _ = Task.Run(() => _botPlayer.PlayEmojiToMainScreenByJsonFileAsync("anger"));
-
+        _ = Task.Run(() => _botPlayer.PlayEmojiToMainScreenByJsonFileAsync("hello"));
         using (var scope = _serviceScopeFactory.CreateScope())
         {
             var botCopilot = scope.ServiceProvider.GetRequiredService<IBotCopilot>();
             var llmResult = await botCopilot.ChatToCopilotAsync(e);
+            _ = Task.Run(() => _botPlayer.PlayEmojiToMainScreenByJsonFileAsync("hello"));
             await _botSpeech.PlayTextToSpeakerAsync(llmResult);
-            _ = Task.Run(() => _botPlayer.PlayEmojiToMainScreenByJsonFileAsync("anger"));
         }
         await _botSpeech.KeywordWakeupAndDialogAsync();
     }
     void BotSpeech_ContinuousRecognitionStarted(object? sender, EventArgs e)
     {
-        _ = Task.Run(() => _botPlayer.PlayEmojiToMainScreenByJsonFileAsync("anger"));
+        _ = Task.Run(() => _botPlayer.PlayEmojiToMainScreenByJsonFileAsync("hello"));
     }
 
     void BotSpeech_SpeechPlaybackCompleted(object? sender, EventArgs e)

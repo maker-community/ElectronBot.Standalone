@@ -9,6 +9,6 @@
   "profiles": [ "verdure" ],
   "llmConfig": {
     "provider": "openai",
-    "model": "qwen2-72b-instruct"
+    "model": "qwen2.5-72b-instruct"
   }
 }
