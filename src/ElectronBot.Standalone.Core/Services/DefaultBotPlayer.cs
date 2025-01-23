@@ -6,9 +6,11 @@ using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using SkiaSharp;
 using SkiaSharp.Skottie;
+using System.Device.Gpio;
 using System.Device.Pwm.Drivers;
 using System.Device.Spi;
 using System.Runtime.InteropServices;
+using System.Text.Json;
 using Verdure.Iot.Device;
 
 namespace ElectronBot.Standalone.Core.Services;
@@ -20,11 +22,20 @@ public class DefaultBotPlayer : IBotPlayer, IDisposable
     private readonly Player _audioPlayer;
     private bool _disposed = false;
     private readonly SemaphoreSlim _emojiSemaphore = new SemaphoreSlim(1, 1);
+    private readonly GpioController? _gpioController;
+    private readonly int _csPin2Inch4 = 8; // 片选引脚
+    private readonly int _csPin1Inch47 = 7; // 片选引脚
+
     public DefaultBotPlayer()
     {
         _audioPlayer = new Player();
+
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
         {
+            _gpioController = new GpioController();
+            _gpioController.OpenPin(_csPin2Inch4, PinMode.Output);
+            _gpioController.OpenPin(_csPin1Inch47, PinMode.Output);
+
             var pwmBacklight = new SoftwarePwmChannel(pinNumber: 18, frequency: 1000);
             pwmBacklight.Start();
             var sender2inch4Device = SpiDevice.Create(new SpiConnectionSettings(0, 0)
@@ -50,6 +61,13 @@ public class DefaultBotPlayer : IBotPlayer, IDisposable
             _lCD1Inch47.Clear();
             _lCD1Inch47.BlDutyCycle(50);
         }
+    }
+
+    private void SelectScreen(int csPin)
+    {
+        _gpioController?.Write(_csPin2Inch4, PinValue.High);
+        _gpioController?.Write(_csPin1Inch47, PinValue.High);
+        _gpioController?.Write(csPin, PinValue.Low);
     }
 
     public async Task PlayEmojiToMainScreenAsync(string emojiName)
@@ -81,8 +99,33 @@ public class DefaultBotPlayer : IBotPlayer, IDisposable
                 }
                 foreach (var item in list)
                 {
+                    SelectScreen(_csPin2Inch4);
                     _lCD2Inch4?.ShowImageBytes(item.FrameBuffer);
                     await Task.Delay(14);
+                }
+            }
+        }
+        finally
+        {
+            _emojiSemaphore.Release();
+        }
+    }
+
+    public async Task PlayEmojiToMainScreenByJsonFileAsync(string emojiName)
+    {
+        await _emojiSemaphore.WaitAsync();
+        try
+        {
+            // JSON deserialization
+            var deserializedData = JsonSerializer.Deserialize<FrameMetaData>(await File.ReadAllTextAsync(Path.Combine(AppContext.BaseDirectory, "EmojiFiles", $"{emojiName}.json")));
+
+            if (deserializedData != null)
+            {
+                foreach (var frameData in deserializedData.FrameDatas)
+                {
+                    SelectScreen(_csPin2Inch4);
+                    _lCD2Inch4?.ShowImageBytes(frameData);
+                    await Task.Delay(20);
                 }
             }
         }
@@ -103,20 +146,31 @@ public class DefaultBotPlayer : IBotPlayer, IDisposable
         using Image<Bgr24> converted2inch4Image = image.CloneAs<Bgr24>();
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
         {
+            SelectScreen(_csPin2Inch4);
             _lCD2Inch4?.ShowImageData(converted2inch4Image);
         }
         return Task.FromResult(true);
     }
 
-    public Task<bool> ShowImageToSubScreenAsync(Image<Bgra32> image)
+    public async Task<bool> ShowImageToSubScreenAsync(Image<Bgra32> image)
     {
-        image.Mutate(x => x.Rotate(90));
-        using Image<Bgr24> converted1inch47Image = image.CloneAs<Bgr24>();
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+        await _emojiSemaphore.WaitAsync();
+        try
         {
-            _lCD1Inch47?.ShowImageData(converted1inch47Image);
+            image.Mutate(x => x.Rotate(90));
+            using Image<Bgr24> converted1inch47Image = image.CloneAs<Bgr24>();
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            {
+                SelectScreen(_csPin1Inch47);
+                _lCD1Inch47?.ShowImageData(converted1inch47Image);
+            }
+            return true;
         }
-        return Task.FromResult(true);
+        finally
+        {
+            _emojiSemaphore.Release();
+        }
+
     }
 
     public async Task PlayAudioByFileAsync(string fileName)
@@ -137,10 +191,11 @@ public class DefaultBotPlayer : IBotPlayer, IDisposable
         {
             if (_lCD2Inch4 != null)
             {
+                SelectScreen(_csPin2Inch4);
                 return _lCD2Inch4.GetImageBytes(converted2inch4Image);
             }
         }
-        return [];
+        return Array.Empty<byte>();
     }
 
     private static Image<Bgra32> RenderLottieFrame(Animation animation, double progress, int width, int height)
@@ -174,6 +229,7 @@ public class DefaultBotPlayer : IBotPlayer, IDisposable
                 // 释放托管资源
                 _lCD2Inch4?.Dispose();
                 _lCD1Inch47?.Dispose();
+                _gpioController?.Dispose();
             }
 
             // 释放非托管资源（如果有）

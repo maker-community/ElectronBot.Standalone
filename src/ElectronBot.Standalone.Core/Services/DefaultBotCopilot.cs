@@ -103,7 +103,7 @@ public class DefaultBotCopilot : IBotCopilot
         var date = lastConv.CreatedTime;
         var localDate = DateTime.Now;
 
-        if (date.ToLocalTime().Date != localDate.Date)
+        if (date.Day != localDate.Day)
         {
             lastConv = await conv.NewConversation(new Conversation
             {

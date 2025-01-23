@@ -17,7 +17,7 @@ public class PeriodicTaskService : BackgroundService
     private readonly IBotSpeech _botSpeech;
     private readonly ILogger<PeriodicTaskService> _logger;
     private Timer? _timer;
-    private IServiceProvider _serviceProvider;
+    private readonly IServiceProvider _serviceProvider;
     private readonly IServiceScopeFactory _serviceScopeFactory;
     public PeriodicTaskService(IBotPlayer botPlayer,
         ILogger<PeriodicTaskService> logger,
@@ -33,8 +33,8 @@ public class PeriodicTaskService : BackgroundService
     protected async override Task ExecuteAsync(CancellationToken stoppingToken)
     {
         _logger.LogInformation("YourBackgroundService is starting.");
-        //await ShowDateTimeAsync();
-        //await _botPlayer.PlayEmojiToMainScreenAsync("think");
+        await ShowDateTimeAsync();
+        _ = Task.Run(() => _botPlayer.PlayEmojiToMainScreenByJsonFileAsync("normal"));
 
         _timer = new Timer(DoWork, null, TimeSpan.Zero, TimeSpan.FromSeconds(5));
 
@@ -50,16 +50,6 @@ public class PeriodicTaskService : BackgroundService
 
         botSpeech.ContinuousRecognitionStarted += BotSpeech_ContinuousRecognitionStarted;
         botSpeech.ContinuousRecognitionCompleted += BotSpeech_ContinuousRecognitionCompleted;
-
-        //while (true)
-        //{
-        //    await botPlayer.PlayEmojiToMainScreenAsync("speak");
-        //    await botPlayer.PlayEmojiToMainScreenAsync("think");
-        //    await botPlayer.PlayEmojiToMainScreenAsync("look");
-        //    await botPlayer.PlayEmojiToMainScreenAsync("ask");
-        //}
-
-
         await botSpeech.KeywordWakeupAndDialogAsync();
     }
     private async void DoWork(object? state)
@@ -106,7 +96,6 @@ public class PeriodicTaskService : BackgroundService
         await base.StopAsync(stoppingToken);
     }
 
-
     public override void Dispose()
     {
         _timer?.Dispose();
@@ -115,32 +104,28 @@ public class PeriodicTaskService : BackgroundService
 
     async void BotSpeech_KeywordRecognized(object? sender, EventArgs e)
     {
-        //var playEmojiTask = _botPlayer.PlayEmojiToMainScreenAsync("ask");
+        _ = Task.Run(() => _botPlayer.PlayEmojiToMainScreenByJsonFileAsync("anger"));
         await _botSpeech.PlayTextToSpeakerAsync("主人我在呢");
-
-        //await Task.WhenAll(playEmojiTask, playTextTask);
-
         await _botSpeech.StartContinuousRecognitionAsync();
     }
 
     async void BotSpeech_ContinuousRecognitionCompleted(object? sender, string e)
     {
         Console.WriteLine($"用户的问题：{e}");
-        _ = _botPlayer.PlayEmojiToMainScreenAsync("think");
+        _ = Task.Run(() => _botPlayer.PlayEmojiToMainScreenByJsonFileAsync("anger"));
 
         using (var scope = _serviceScopeFactory.CreateScope())
         {
             var botCopilot = scope.ServiceProvider.GetRequiredService<IBotCopilot>();
             var llmResult = await botCopilot.ChatToCopilotAsync(e);
             await _botSpeech.PlayTextToSpeakerAsync(llmResult);
-            //var playEmojiTask = _botPlayer.PlayEmojiToMainScreenAsync("speak");
-            //await Task.WhenAll(playEmojiTask, playTextTask);
+            _ = Task.Run(() => _botPlayer.PlayEmojiToMainScreenByJsonFileAsync("anger"));
         }
         await _botSpeech.KeywordWakeupAndDialogAsync();
     }
     void BotSpeech_ContinuousRecognitionStarted(object? sender, EventArgs e)
     {
-        //_botPlayer.PlayEmojiToMainScreenAsync("look");
+        _ = Task.Run(() => _botPlayer.PlayEmojiToMainScreenByJsonFileAsync("anger"));
     }
 
     void BotSpeech_SpeechPlaybackCompleted(object? sender, EventArgs e)
