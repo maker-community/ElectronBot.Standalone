@@ -21,5 +21,9 @@ Electronbot is a standalone version based on the Raspberry Pi.
 
 [用纯.NET开发并制作一个智能桌面机器人（二）：用.NET IoT库编写驱动控制两个屏幕](https://www.cnblogs.com/GreenShade/p/18671407)
 
+[用纯.NET开发并制作一个智能桌面机器人（三）：用.NET IoT库控制舵机并多方法播放表情](https://www.cnblogs.com/GreenShade/p/18692804)
+
+
+
 
 
