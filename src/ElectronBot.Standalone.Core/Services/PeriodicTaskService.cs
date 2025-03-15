@@ -34,7 +34,7 @@ public class PeriodicTaskService : BackgroundService
     {
         _logger.LogInformation("YourBackgroundService is starting.");
         await ShowDateTimeAsync();
-        _ = Task.Run(() => _botPlayer.PlayEmojiToMainScreenByJsonFileAsync("normal"));
+        _ = Task.Run(() => _botPlayer.PlayEmojiToMainScreenAsync("look"));
 
         _ = Task.Run(() => _botSpeech.PlayTextToSpeakerAsync("我是小娜，很高兴为主人服务呢"));
 
@@ -106,7 +106,7 @@ public class PeriodicTaskService : BackgroundService
 
     async void BotSpeech_KeywordRecognized(object? sender, EventArgs e)
     {
-        _ = Task.Run(() => _botPlayer.PlayEmojiToMainScreenByJsonFileAsync("hello"));
+        _ = Task.Run(() => _botPlayer.PlayEmojiToMainScreenAsync("think"));
         await _botSpeech.PlayTextToSpeakerAsync("主人我在呢");
         await _botSpeech.StartContinuousRecognitionAsync();
     }
@@ -114,19 +114,19 @@ public class PeriodicTaskService : BackgroundService
     async void BotSpeech_ContinuousRecognitionCompleted(object? sender, string e)
     {
         Console.WriteLine($"用户的问题：{e}");
-        _ = Task.Run(() => _botPlayer.PlayEmojiToMainScreenByJsonFileAsync("hello"));
+        _ = Task.Run(() => _botPlayer.PlayEmojiToMainScreenAsync("speak"));
         using (var scope = _serviceScopeFactory.CreateScope())
         {
             var botCopilot = scope.ServiceProvider.GetRequiredService<IBotCopilot>();
             var llmResult = await botCopilot.ChatToCopilotAsync(e);
-            _ = Task.Run(() => _botPlayer.PlayEmojiToMainScreenByJsonFileAsync("hello"));
+            _ = Task.Run(() => _botPlayer.PlayEmojiToMainScreenAsync("speak"));
             await _botSpeech.PlayTextToSpeakerAsync(llmResult);
         }
         await _botSpeech.KeywordWakeupAndDialogAsync();
     }
     void BotSpeech_ContinuousRecognitionStarted(object? sender, EventArgs e)
     {
-        _ = Task.Run(() => _botPlayer.PlayEmojiToMainScreenByJsonFileAsync("hello"));
+        _ = Task.Run(() => _botPlayer.PlayEmojiToMainScreenAsync("speak"));
     }
 
     void BotSpeech_SpeechPlaybackCompleted(object? sender, EventArgs e)

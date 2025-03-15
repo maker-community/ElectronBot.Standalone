@@ -88,21 +88,22 @@ public class DefaultBotPlayer : IBotPlayer, IDisposable
                 Console.WriteLine($"Duration :{animation.Duration.TotalSeconds}");
                 for (int i = 0; i < frameCount; i++)
                 {
-                    var progress = animation.Duration.TotalSeconds / (frameCount - i);
+                    // 计算进度
+                    var progress = i / frameCount * animation.Duration.TotalSeconds;
                     var frame = RenderLottieFrame(animation, progress, 320, 240);
-                    list.Add(new FaceFrame
-                    {
-                        FrameBuffer = GetImageBytes(frame)
-                    });
+                    //list.Add(new FaceFrame
+                    //{
+                    //    FrameBuffer = GetImageBytes(frame)
+                    //});
                     //await frame.SaveAsPngAsync(Path.Combine($"frame_{i:D4}.png"));
-                    //await ShowImageToMainScreenAsync(frame);
+                    await ShowImageToMainScreenAsync(frame);
                 }
-                foreach (var item in list)
-                {
-                    SelectScreen(_csPin2Inch4);
-                    _lCD2Inch4?.ShowImageBytes(item.FrameBuffer);
-                    await Task.Delay(14);
-                }
+                //foreach (var item in list)
+                //{
+                //    SelectScreen(_csPin2Inch4);
+                //    _lCD2Inch4?.ShowImageBytes(item.FrameBuffer);
+                //    await Task.Delay(14);
+                //}
             }
         }
         finally
@@ -147,7 +148,8 @@ public class DefaultBotPlayer : IBotPlayer, IDisposable
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
         {
             SelectScreen(_csPin2Inch4);
-            _lCD2Inch4?.ShowImageData(converted2inch4Image);
+            var data1 = _lCD2Inch4?.GetImageBytes(converted2inch4Image);
+            _lCD2Inch4?.ShowImageBytes(data1 ?? []);
         }
         return Task.FromResult(true);
     }
@@ -162,7 +164,8 @@ public class DefaultBotPlayer : IBotPlayer, IDisposable
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
                 SelectScreen(_csPin1Inch47);
-                _lCD1Inch47?.ShowImageData(converted1inch47Image);
+                var data2 = _lCD1Inch47?.GetImageBytes(converted1inch47Image);
+                _lCD1Inch47?.ShowImageBytes(data2 ?? []);
             }
             return true;
         }
