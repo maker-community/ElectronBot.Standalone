@@ -1,6 +1,12 @@
 # ElectronBot.Standalone
 Electronbot is a standalone version based on the Raspberry Pi.
 
+The current version is developed based on Raspberry Pi Zero 2W.
+
+We are currently working with [SeeedStudio](https://www.seeedstudio.com/) to develop a version for Raspberry Pi 5, so stay tuned.
+
+近期正在和[SeeedStudio](https://www.seeedstudio.com/)合作开发Raspberry Pi 5的版本，敬请期待。
+
 ![image](/Images/image.png)
 
 3D模型图片：
