@@ -92,31 +92,31 @@ public class DefaultBotPlayer : IBotPlayer, IDisposable
         }
 
         // 在这里添加你的定时任务逻辑
-        using (Image<Bgra32> image1inch47 = Image.Load<Bgra32>("Asserts/verdure.png"))
-        {
-            var collection = new FontCollection();
-            var family = collection.Add("Asserts/SmileySans-Oblique.ttf");
-            var font = family.CreateFont(24, FontStyle.Bold);
+        //using (Image<Bgra32> image1inch47 = Image.Load<Bgra32>("Asserts/verdure.png"))
+        //{
+        //    var collection = new FontCollection();
+        //    var family = collection.Add("Asserts/SmileySans-Oblique.ttf");
+        //    var font = family.CreateFont(24, FontStyle.Bold);
 
-            var textOptions = new TextOptions(font)
-            {
-                HorizontalAlignment = HorizontalAlignment.Center,
-                VerticalAlignment = VerticalAlignment.Center,
-                WrappingLength = 320
-            };
-            // 获取当前时间
-            string currentTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
-            var displayText = $"当前时间:{currentTime}";
+        //    var textOptions = new TextOptions(font)
+        //    {
+        //        HorizontalAlignment = HorizontalAlignment.Center,
+        //        VerticalAlignment = VerticalAlignment.Center,
+        //        WrappingLength = 320
+        //    };
+        //    // 获取当前时间
+        //    string currentTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+        //    var displayText = $"当前时间:{currentTime}";
 
-            var size = TextMeasurer.MeasureSize(displayText, textOptions);
+        //    var size = TextMeasurer.MeasureSize(displayText, textOptions);
 
-            var position = new PointF((LCD1inch47.Height - size.Width) / 2, 8);
-            // 在图片上绘制时间
-            image1inch47.Mutate(ctx => ctx.DrawText(displayText, font, Color.White, position));
+        //    var position = new PointF((LCD1inch47.Height - size.Width) / 2, 8);
+        //    // 在图片上绘制时间
+        //    image1inch47.Mutate(ctx => ctx.DrawText(displayText, font, Color.White, position));
 
-            //await image1inch47.SaveAsPngAsync(Path.Combine($"frame_{DateTime.Now.Ticks}.png"));
-            await ShowImageToSubScreenAsync(image1inch47);
-        }
+        //    //await image1inch47.SaveAsPngAsync(Path.Combine($"frame_{DateTime.Now.Ticks}.png"));
+        //    await ShowImageToSubScreenAsync(image1inch47);
+        //}
     }
 
     public async Task PlayLottieByNameIdAsync(string nameId, int times)

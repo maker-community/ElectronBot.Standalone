@@ -135,6 +135,7 @@ public class HostedService : IHostedService, IDisposable
                         // Speak the AI's reply
                         await botSpeech.SpeakAsync(reply, cancellationToken);
 
+                        _ = _botPlayer.StopLottiePlaybackAsync();
                         // If the user said "Goodbye" - stop listening and wait for the wake work again.
                         if (userSpoke.StartsWith("再见") || userSpoke.StartsWith("goodbye", StringComparison.InvariantCultureIgnoreCase))
                         {
