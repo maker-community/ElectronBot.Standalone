@@ -37,7 +37,6 @@ builder.Services.AddSingleton(botSpeechSettings);
 
 builder.Services.AddScoped<BraincaseLiteDBContext>();
 builder.Services.AddSingleton<IBotPlayer, DefaultBotPlayer>();
-builder.Services.AddSingleton<IBotSpeech, DefaultBotSpeech>();
 builder.Services.AddSingleton<IBotSpeecher, AzBotSpeecher>();
 builder.Services.AddSingleton<IWakeWordListener, AzCognitiveServicesWakeWordListener>();
 builder.Services.AddScoped<IBotCopilot, DefaultBotCopilot>();

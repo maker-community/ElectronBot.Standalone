@@ -38,27 +38,28 @@ public class AzBotSpeecher : IBotSpeecher
 
         _speechRecognizer = new SpeechRecognizer(speechConfig, _audioConfig);
         _speechSynthesizer = new SpeechSynthesizer(speechConfig);
-        _speechSynthesizer.SynthesisStarted += _speechSynthesizer_SynthesisStarted;
-        _speechRecognizer.SpeechEndDetected += _speechRecognizer_SpeechEndDetected;
-        _speechSynthesizer.SynthesisCompleted += _speechSynthesizer_SynthesisCompleted;
+        //_speechSynthesizer.SynthesisStarted += _speechSynthesizer_SynthesisStarted;
+        //_speechRecognizer.SpeechEndDetected += _speechRecognizer_SpeechEndDetected;
+        //_speechSynthesizer.SynthesisCompleted += _speechSynthesizer_SynthesisCompleted;
     }
     private async void _speechSynthesizer_SynthesisCompleted(object? sender, SpeechSynthesisEventArgs e)
     {
-        _ = Task.Run(() => _botPlayer.PlayEmojiToMainScreenAsync("look"));
+        //_ = Task.Run(() => _botPlayer.PlayEmojiToMainScreenAsync("look"));
     }
 
     private async void _speechRecognizer_SpeechEndDetected(object? sender, RecognitionEventArgs e)
     {
-        _ = Task.Run(() => _botPlayer.PlayEmojiToMainScreenAsync("think"));
+        //_ = Task.Run(() => _botPlayer.PlayEmojiToMainScreenAsync("think"));
     }
 
     private async void _speechSynthesizer_SynthesisStarted(object? sender, SpeechSynthesisEventArgs e)
     {
-        _ = Task.Run(() => _botPlayer.PlayEmojiToMainScreenAsync("speak"));
+        //_ = Task.Run(() => _botPlayer.PlayEmojiToMainScreenAsync("speak"));
     }
 
     public async Task<string> ListenAsync(CancellationToken cancellationToken)
     {
+        _ = _botPlayer.PlayLottieByNameIdAsync("look", -1);
         while (!cancellationToken.IsCancellationRequested)
         {
             _logger.LogInformation("Listening...");
@@ -82,6 +83,7 @@ public class AzBotSpeecher : IBotSpeecher
     }
     public async Task SpeakAsync(string text, CancellationToken cancellationToken)
     {
+        _ = _botPlayer.PlayLottieByNameIdAsync("speak", -1);
         if (!string.IsNullOrWhiteSpace(text))
         {
             // Parse speaking style, if any
@@ -100,7 +102,6 @@ public class AzBotSpeecher : IBotSpeecher
                 _options.SpeechSynthesisVoiceName);
 
             _logger.LogDebug(ssml);
-
             await _speechSynthesizer.SpeakSsmlAsync(ssml);
         }
     }

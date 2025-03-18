@@ -4,7 +4,6 @@ using Microsoft.CognitiveServices.Speech;
 using Microsoft.CognitiveServices.Speech.Audio;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 
 namespace ElectronBot.Standalone.Core.Handlers;
 
@@ -42,9 +41,9 @@ public class AzCognitiveServicesWakeWordListener : IWakeWordListener
     public async Task<bool> WaitForWakeWordAsync(CancellationToken cancellationToken)
     {
         KeywordRecognitionResult result;
+        _ = _botPlayer.PlayLottieByNameIdAsync("look", -1);
         do
         {
-            _ = Task.Run(() => _botPlayer.PlayEmojiToMainScreenAsync("look"));
             _logger.LogInformation($"Waiting for wake phrase...");
             result = await _keywordRecognizer.RecognizeOnceAsync(_keywordModel);
             _logger.LogInformation("Wake phrase detected.");

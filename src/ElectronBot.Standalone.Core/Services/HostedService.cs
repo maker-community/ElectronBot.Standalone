@@ -34,15 +34,17 @@ public class HostedService : IHostedService, IDisposable
 
     private readonly IServiceScopeFactory _serviceScopeFactory;
 
+    private readonly IBotPlayer _botPlayer;
+
     /// <summary>
     /// Constructor
     /// </summary>
     public HostedService(IWakeWordListener wakeWordListener,
         ILogger<HostedService> logger,
-        IBotSpeech botSpeech,
         IServiceProvider serviceProvider,
         BotSpeechSetting options,
-        IServiceScopeFactory serviceScopeFactory)
+        IServiceScopeFactory serviceScopeFactory,
+        IBotPlayer botPlayer)
     {
         _logger = logger;
         _wakeWordListener = wakeWordListener;
@@ -51,6 +53,7 @@ public class HostedService : IHostedService, IDisposable
         _serviceProvider = serviceProvider;
         _options = options;
         _serviceScopeFactory = serviceScopeFactory;
+        _botPlayer = botPlayer;
     }
 
     /// <summary>
@@ -75,12 +78,12 @@ public class HostedService : IHostedService, IDisposable
                 await _player.Play(_notificationSoundFilePath);
 
                 var botSpeech = _serviceProvider.GetRequiredService<IBotSpeecher>();
+
                 // Wait for wake word or phrase
                 if (!await _wakeWordListener.WaitForWakeWordAsync(cancellationToken))
                 {
                     continue;
                 }
-
                 await _player.Play(_notificationSoundFilePath);
 
                 var helloString = _options.AnswerText;
@@ -91,6 +94,8 @@ public class HostedService : IHostedService, IDisposable
                 {
                     // Listen to the user
                     var userSpoke = await botSpeech.ListenAsync(cancellationToken);
+
+                    _ = _botPlayer.PlayLottieByNameIdAsync("think", -1);
 
                     _logger.LogInformation($"User spoke: {userSpoke}");
                     // Get a reply from the AI and add it to the chat history.
@@ -126,6 +131,7 @@ public class HostedService : IHostedService, IDisposable
                                 });
                         });
 
+                        _ = _botPlayer.StopLottiePlaybackAsync();
                         // Speak the AI's reply
                         await botSpeech.SpeakAsync(reply, cancellationToken);
 
