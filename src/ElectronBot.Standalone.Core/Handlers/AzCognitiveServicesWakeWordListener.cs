@@ -41,13 +41,33 @@ public class AzCognitiveServicesWakeWordListener : IWakeWordListener
     public async Task<bool> WaitForWakeWordAsync(CancellationToken cancellationToken)
     {
         KeywordRecognitionResult result;
-        _ = _botPlayer.PlayLottieByNameIdAsync("look", -1);
         do
         {
+            try
+            {
+                // 启动动画但不阻塞当前执行流程
+                var animationTask = _botPlayer.PlayLottieByNameIdAsync("look", -1);
+
+                // 可以选择添加异常处理
+                animationTask?.ContinueWith(t =>
+                {
+                    if (t.IsFaulted)
+                    {
+                        _logger.LogError($"Animation playback failed: {t.Exception}");
+                    }
+                }, TaskContinuationOptions.OnlyOnFaulted);
+            }
+            catch (Exception ex)
+            {
+                await _botPlayer.StopLottiePlaybackAsync();
+                _logger.LogError($"Failed to start animation: {ex.Message}");
+                // 根据需要处理异常
+            }
             _logger.LogInformation($"Waiting for wake phrase...");
             result = await _keywordRecognizer.RecognizeOnceAsync(_keywordModel);
             _logger.LogInformation("Wake phrase detected.");
             _logger.LogDebug($"{result.Reason}");
+            await _botPlayer.StopLottiePlaybackAsync();
         } while (result.Reason != ResultReason.RecognizedKeyword);
         return true;
     }

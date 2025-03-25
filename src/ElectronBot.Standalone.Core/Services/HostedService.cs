@@ -60,7 +60,8 @@ public class HostedService : IHostedService, IDisposable
     /// Start the service.
     /// </summary>
     public Task StartAsync(CancellationToken cancellationToken)
-    {
+    { 
+        _botPlayer.ShowDateToSubScreenAsync();
         _executeTask = ExecuteAsync(_cancelToken.Token);
         return Task.CompletedTask;
     }
@@ -94,8 +95,7 @@ public class HostedService : IHostedService, IDisposable
                 {
                     // Listen to the user
                     var userSpoke = await botSpeech.ListenAsync(cancellationToken);
-
-                    _ = _botPlayer.PlayLottieByNameIdAsync("think", -1);
+                    await _botPlayer.StopLottiePlaybackAsync();
 
                     _logger.LogInformation($"User spoke: {userSpoke}");
                     // Get a reply from the AI and add it to the chat history.
@@ -120,6 +120,27 @@ public class HostedService : IHostedService, IDisposable
                         routing.Context.SetMessageId(setting.CurrentConversationId, inputMsg.MessageId);
                         conversationService.SetConversationId(setting.CurrentConversationId, new());
 
+                        try
+                        {
+                            // 启动动画但不阻塞当前执行流程
+                            var animationTask = _botPlayer.PlayLottieByNameIdAsync("think", -1);
+
+                            // 可以选择添加异常处理
+                            animationTask?.ContinueWith(t =>
+                            {
+                                if (t.IsFaulted)
+                                {
+                                    _logger.LogError($"Animation playback failed: {t.Exception}");
+                                }
+                            }, TaskContinuationOptions.OnlyOnFaulted);
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError($"Failed to start animation: {ex.Message}");
+                            await _botPlayer.StopLottiePlaybackAsync();
+                            // 根据需要处理异常
+                        }
+
                         await Task.Run(async () =>
                         {
                             await conversationService.SendMessage(VerdureAgentId.VerdureChatId, inputMsg,
@@ -131,11 +152,10 @@ public class HostedService : IHostedService, IDisposable
                                 });
                         });
 
-                        _ = _botPlayer.StopLottiePlaybackAsync();
+                        await _botPlayer.StopLottiePlaybackAsync();
                         // Speak the AI's reply
                         await botSpeech.SpeakAsync(reply, cancellationToken);
 
-                        _ = _botPlayer.StopLottiePlaybackAsync();
                         // If the user said "Goodbye" - stop listening and wait for the wake work again.
                         if (userSpoke.StartsWith("再见") || userSpoke.StartsWith("goodbye", StringComparison.InvariantCultureIgnoreCase))
                         {

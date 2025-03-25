@@ -59,9 +59,27 @@ public class AzBotSpeecher : IBotSpeecher
 
     public async Task<string> ListenAsync(CancellationToken cancellationToken)
     {
-        _ = _botPlayer.PlayLottieByNameIdAsync("look", -1);
         while (!cancellationToken.IsCancellationRequested)
         {
+            try
+            {
+                // 启动动画但不阻塞当前执行流程
+                var animationTask = _botPlayer.PlayLottieByNameIdAsync("look", -1);
+
+                // 可以选择添加异常处理
+                animationTask?.ContinueWith(t =>
+                {
+                    if (t.IsFaulted)
+                    {
+                        _logger.LogError($"Animation playback failed: {t.Exception}");
+                    }
+                }, TaskContinuationOptions.OnlyOnFaulted);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Failed to start animation: {ex.Message}");
+                // 根据需要处理异常
+            }
             _logger.LogInformation("Listening...");
 
             SpeechRecognitionResult result = await _speechRecognizer.RecognizeOnceAsync();
@@ -69,6 +87,8 @@ public class AzBotSpeecher : IBotSpeecher
             {
                 case ResultReason.RecognizedSpeech:
                     _logger.LogInformation($"Recognized: {result.Text}");
+                    // 停止动画
+                    await _botPlayer.StopLottiePlaybackAsync();
                     return result.Text;
                 case ResultReason.Canceled:
                     _logger.LogWarning($"Speech recognizer session canceled.");
@@ -83,9 +103,27 @@ public class AzBotSpeecher : IBotSpeecher
     }
     public async Task SpeakAsync(string text, CancellationToken cancellationToken)
     {
-        _ = _botPlayer.PlayLottieByNameIdAsync("speak", -1);
         if (!string.IsNullOrWhiteSpace(text))
         {
+            try
+            {
+                // 启动动画但不阻塞当前执行流程
+                var animationTask = _botPlayer.PlayLottieByNameIdAsync("speak", -1);
+
+                // 可以选择添加异常处理
+                animationTask?.ContinueWith(t =>
+                {
+                    if (t.IsFaulted)
+                    {
+                        _logger.LogError($"Animation playback failed: {t.Exception}");
+                    }
+                }, TaskContinuationOptions.OnlyOnFaulted);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Failed to start animation: {ex.Message}");
+                // 根据需要处理异常
+            }
             // Parse speaking style, if any
             text = ExtractStyle(text, out var style);
             if (string.IsNullOrWhiteSpace(style))
@@ -103,6 +141,8 @@ public class AzBotSpeecher : IBotSpeecher
 
             _logger.LogDebug(ssml);
             await _speechSynthesizer.SpeakSsmlAsync(ssml);
+            // 停止动画
+            await _botPlayer.StopLottiePlaybackAsync();
         }
     }
     /// <summary>

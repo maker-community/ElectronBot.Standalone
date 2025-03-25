@@ -11,6 +11,8 @@ public interface IBotPlayer
 
     Task<bool> ShowImageToSubScreenAsync(Image<Bgra32> image);
 
+    Task ShowDateToSubScreenAsync();
+
     Task PlayEmojiToMainScreenAsync(string emojiName);
 
     Task PlayEmojiToMainScreenByJsonFileAsync(string emojiName);

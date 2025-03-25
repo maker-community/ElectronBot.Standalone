@@ -74,8 +74,8 @@ app.Lifetime.ApplicationStarted.Register(async () =>
     // Retrieve IBotCopilot from DI container
     using (var scope = app.Services.CreateScope())
     {
-        //var botCopilot = scope.ServiceProvider.GetRequiredService<IBotCopilot>();
-        //await botCopilot.InitCopilotAsync();
+        var botCopilot = scope.ServiceProvider.GetRequiredService<IBotCopilot>();
+        await botCopilot.InitCopilotAsync();
     }
 });
 
