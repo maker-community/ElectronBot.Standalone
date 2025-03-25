@@ -23,9 +23,11 @@ public class HostedService : IHostedService, IDisposable
     private readonly IWakeWordListener _wakeWordListener;
 
     private readonly IServiceProvider _serviceProvider;
+
     private BotSpeechSetting _options;
 
     private Task? _executeTask;
+
     private readonly CancellationTokenSource _cancelToken = new();
 
     // Notification sound support
@@ -166,6 +168,7 @@ public class HostedService : IHostedService, IDisposable
             }
             catch (Exception aiex)
             {
+                await _botPlayer.StopLottiePlaybackAsync();
                 _logger.LogError($"OpenAI returned an error.{aiex.Message}");
             }
         }
