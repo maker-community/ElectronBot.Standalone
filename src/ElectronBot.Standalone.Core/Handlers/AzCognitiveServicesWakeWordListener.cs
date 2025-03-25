@@ -75,6 +75,7 @@ public class AzCognitiveServicesWakeWordListener : IWakeWordListener
     /// <inheritdoc/>
     public void Dispose()
     {
-        _audioConfig.Dispose();
+        _audioConfig?.Dispose();
+        GC.SuppressFinalize(this);
     }
 }

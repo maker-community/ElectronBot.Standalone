@@ -10,10 +10,10 @@ namespace ElectronBot.Standalone.Core.Handlers;
 public class AzBotSpeecher : IBotSpeecher
 {
     private readonly ILogger _logger;
-    private BotSpeechSetting _options;
-    private AudioConfig _audioConfig;
-    private SpeechRecognizer _speechRecognizer;
-    private SpeechSynthesizer _speechSynthesizer;
+    private readonly BotSpeechSetting _options;
+    private readonly AudioConfig _audioConfig;
+    private readonly SpeechRecognizer _speechRecognizer;
+    private readonly SpeechSynthesizer _speechSynthesizer;
     private readonly IMemoryCache _memoryCache;
     private readonly IBotPlayer _botPlayer;
     /// <summary>
@@ -38,23 +38,6 @@ public class AzBotSpeecher : IBotSpeecher
 
         _speechRecognizer = new SpeechRecognizer(speechConfig, _audioConfig);
         _speechSynthesizer = new SpeechSynthesizer(speechConfig);
-        //_speechSynthesizer.SynthesisStarted += _speechSynthesizer_SynthesisStarted;
-        //_speechRecognizer.SpeechEndDetected += _speechRecognizer_SpeechEndDetected;
-        //_speechSynthesizer.SynthesisCompleted += _speechSynthesizer_SynthesisCompleted;
-    }
-    private async void _speechSynthesizer_SynthesisCompleted(object? sender, SpeechSynthesisEventArgs e)
-    {
-        //_ = Task.Run(() => _botPlayer.PlayEmojiToMainScreenAsync("look"));
-    }
-
-    private async void _speechRecognizer_SpeechEndDetected(object? sender, RecognitionEventArgs e)
-    {
-        //_ = Task.Run(() => _botPlayer.PlayEmojiToMainScreenAsync("think"));
-    }
-
-    private async void _speechSynthesizer_SynthesisStarted(object? sender, SpeechSynthesisEventArgs e)
-    {
-        //_ = Task.Run(() => _botPlayer.PlayEmojiToMainScreenAsync("speak"));
     }
 
     public async Task<string> ListenAsync(CancellationToken cancellationToken)
@@ -74,29 +57,32 @@ public class AzBotSpeecher : IBotSpeecher
                         _logger.LogError($"Animation playback failed: {t.Exception}");
                     }
                 }, TaskContinuationOptions.OnlyOnFaulted);
+
+                _logger.LogInformation("Listening...");
+
+                var result = await _speechRecognizer.RecognizeOnceAsync();
+                switch (result.Reason)
+                {
+                    case ResultReason.RecognizedSpeech:
+                        _logger.LogInformation($"Recognized: {result.Text}");
+                        // 停止动画
+                        await _botPlayer.StopLottiePlaybackAsync();
+                        return result.Text;
+                    case ResultReason.NoMatch:
+                        _logger.LogWarning("No speech could be recognized.");
+                        break;
+                    case ResultReason.Canceled:
+                        _logger.LogWarning("Speech recognizer session canceled.");
+
+                        CancellationDetails cancelDetails = CancellationDetails.FromResult(result);
+                        _logger.LogWarning($"{cancelDetails.Reason}: {cancelDetails.ErrorCode}");
+                        _logger.LogDebug(cancelDetails.ToString());
+                        break;
+                }
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Failed to start animation: {ex.Message}");
-                // 根据需要处理异常
-            }
-            _logger.LogInformation("Listening...");
-
-            SpeechRecognitionResult result = await _speechRecognizer.RecognizeOnceAsync();
-            switch (result.Reason)
-            {
-                case ResultReason.RecognizedSpeech:
-                    _logger.LogInformation($"Recognized: {result.Text}");
-                    // 停止动画
-                    await _botPlayer.StopLottiePlaybackAsync();
-                    return result.Text;
-                case ResultReason.Canceled:
-                    _logger.LogWarning($"Speech recognizer session canceled.");
-
-                    CancellationDetails cancelDetails = CancellationDetails.FromResult(result);
-                    _logger.LogWarning($"{cancelDetails.Reason}: {cancelDetails.ErrorCode}");
-                    _logger.LogDebug(cancelDetails.ToString());
-                    break;
+                _logger.LogError($"Exception during speech recognition: {ex.Message}");
             }
         }
         return string.Empty;
@@ -124,6 +110,10 @@ public class AzBotSpeecher : IBotSpeecher
                 _logger.LogError($"Failed to start animation: {ex.Message}");
                 // 根据需要处理异常
             }
+
+            // 移除text中的emojis表情
+            text = RemoveEmojis(text);
+
             // Parse speaking style, if any
             text = ExtractStyle(text, out var style);
             if (string.IsNullOrWhiteSpace(style))
@@ -144,6 +134,23 @@ public class AzBotSpeecher : IBotSpeecher
             // 停止动画
             await _botPlayer.StopLottiePlaybackAsync();
         }
+    }
+
+    private string RemoveEmojis(string text)
+    {
+        if (string.IsNullOrEmpty(text))
+            return text;
+
+        // 匹配Unicode Emoji的正则表达式
+        // 包括:
+        // - 基本Emoji符号
+        // - 扩展Emoji符号
+        // - 补充符号
+        // - 国旗等特殊组合
+        return Regex.Replace(
+            text,
+            @"(\u00a9|\u00ae|[\u2000-\u3300]|\ud83c[\ud000-\udfff]|\ud83d[\ud000-\udfff]|\ud83e[\ud000-\udfff]|[\u2702-\u27b0])",
+            string.Empty);
     }
     /// <summary>
     /// Extract style cues from a message.
@@ -178,5 +185,6 @@ public class AzBotSpeecher : IBotSpeecher
     {
         _speechRecognizer?.Dispose();
         _audioConfig?.Dispose();
+        GC.SuppressFinalize(this);
     }
 }
