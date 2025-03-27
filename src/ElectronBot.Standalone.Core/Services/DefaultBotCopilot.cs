@@ -27,35 +27,6 @@ public class DefaultBotCopilot : IBotCopilot
         _userIdentity = userIdentity;
         _userService = userService;
     }
-
-    public async Task<string> ChatToCopilotAsync(string question)
-    {
-        var msgStr = string.Empty;
-        var inputMsg = new RoleDialogModel(AgentRole.User, question)
-        {
-            MessageId = Guid.NewGuid().ToString(),
-            CreatedAt = DateTime.UtcNow
-        };
-
-        var repo = _serviceProvider.GetRequiredService<IBraincaseRepository>();
-
-        var setting = await repo.GetSettingAsync();
-
-        var conversationService = _serviceProvider.GetRequiredService<IConversationService>();
-
-        var routing = _serviceProvider.GetRequiredService<IRoutingService>();
-        routing.Context.SetMessageId(setting.CurrentConversationId, inputMsg.MessageId);
-
-        conversationService.SetConversationId(setting.CurrentConversationId, new());
-        await conversationService.SendMessage(VerdureAgentId.VerdureChatId, inputMsg,
-                       replyMessage: null,
-                       async msg =>
-                       {
-                           msgStr = msg.Content;
-                       });
-        return msgStr;
-    }
-
     public async Task InitCopilotAsync()
     {
         var user = await _userService.GetUser(_userIdentity.Id);

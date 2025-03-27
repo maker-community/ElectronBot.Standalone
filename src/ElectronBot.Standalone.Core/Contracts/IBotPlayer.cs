@@ -5,9 +5,13 @@ namespace ElectronBot.Standalone.Core.Contracts;
 
 public interface IBotPlayer
 {
+    Task PlayLottieByNameIdAsync(string nameId, int times = 1);
+    Task StopLottiePlaybackAsync();
     Task<bool> ShowImageToMainScreenAsync(Image<Bgra32> image);
 
     Task<bool> ShowImageToSubScreenAsync(Image<Bgra32> image);
+
+    Task ShowDateToSubScreenAsync();
 
     Task PlayEmojiToMainScreenAsync(string emojiName);
 

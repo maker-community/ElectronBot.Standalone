@@ -1,7 +1,9 @@
 ﻿using ElectronBot.Standalone.Core.Contracts;
 using ElectronBot.Standalone.Core.Models;
 using NetCoreAudio;
+using SixLabors.Fonts;
 using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Drawing.Processing;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using SkiaSharp;
@@ -26,9 +28,18 @@ public class DefaultBotPlayer : IBotPlayer, IDisposable
     private readonly int _csPin2Inch4 = 8; // 片选引脚
     private readonly int _csPin1Inch47 = 7; // 片选引脚
 
+    private readonly LottiePlayer _lottiePlayer;
+
     public DefaultBotPlayer()
     {
         _audioPlayer = new Player();
+
+        _lottiePlayer = new LottiePlayer(ProcessFrame);
+
+        // 订阅事件
+        _lottiePlayer.PlayCompleted += (s, e) => Console.WriteLine($"动画播放完成: {e.FilePath}");
+        _lottiePlayer.PlayStopped += (s, e) => Console.WriteLine($"动画播放被停止: {e.FilePath}");
+        _lottiePlayer.FrameRendered += FrameRendered;
 
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
         {
@@ -37,22 +48,27 @@ public class DefaultBotPlayer : IBotPlayer, IDisposable
             //_gpioController.OpenPin(_csPin1Inch47, PinMode.Output);
 
             var pwmBacklight = new SoftwarePwmChannel(pinNumber: 18, frequency: 1000);
+
             pwmBacklight.Start();
+
             var sender2inch4Device = SpiDevice.Create(new SpiConnectionSettings(0, 0)
             {
-                ClockFrequency = 50000000,
+                ClockFrequency = 25000000,
                 Mode = SpiMode.Mode0
             });
+
             var sender1inch47Device = SpiDevice.Create(new SpiConnectionSettings(0, 1)
             {
-                ClockFrequency = 50000000,
+                ClockFrequency = 25000000,
                 Mode = SpiMode.Mode0
             });
+
             _lCD2Inch4 = new LCD2inch4(sender2inch4Device, pwmBacklight);
             _lCD2Inch4.Reset();
             _lCD2Inch4.Init();
             _lCD2Inch4.SetWindows(0, 0, LCD2inch4.Width, LCD2inch4.Height);
             _lCD2Inch4.Clear();
+
             //_lCD2Inch4.BlDutyCycle(50);
 
             _lCD1Inch47 = new LCD1inch47(sender1inch47Device, pwmBacklight);
@@ -61,6 +77,58 @@ public class DefaultBotPlayer : IBotPlayer, IDisposable
             _lCD1Inch47.Clear();
             //_lCD1Inch47.BlDutyCycle(50);
         }
+    }
+
+    private  Task ProcessFrame(LottieFrameEventArgs frameData)
+    {
+        return Task.CompletedTask;
+    }
+
+    private async void FrameRendered(object? sender, LottieFrameRenderedEventArgs e)
+    {
+        if(e.Image != null)
+        {
+            await ShowImageToMainScreenAsync(e.Image);
+        }
+
+        // 在这里添加你的定时任务逻辑
+        //using (Image<Bgra32> image1inch47 = Image.Load<Bgra32>("Asserts/verdure.png"))
+        //{
+        //    var collection = new FontCollection();
+        //    var family = collection.Add("Asserts/SmileySans-Oblique.ttf");
+        //    var font = family.CreateFont(24, FontStyle.Bold);
+
+        //    var textOptions = new TextOptions(font)
+        //    {
+        //        HorizontalAlignment = HorizontalAlignment.Center,
+        //        VerticalAlignment = VerticalAlignment.Center,
+        //        WrappingLength = 320
+        //    };
+        //    // 获取当前时间
+        //    string currentTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+        //    var displayText = $"当前时间:{currentTime}";
+
+        //    var size = TextMeasurer.MeasureSize(displayText, textOptions);
+
+        //    var position = new PointF((LCD1inch47.Height - size.Width) / 2, 8);
+        //    // 在图片上绘制时间
+        //    image1inch47.Mutate(ctx => ctx.DrawText(displayText, font, Color.White, position));
+
+        //    //await image1inch47.SaveAsPngAsync(Path.Combine($"frame_{DateTime.Now.Ticks}.png"));
+        //    await ShowImageToSubScreenAsync(image1inch47);
+        //}
+    }
+
+    public async Task PlayLottieByNameIdAsync(string nameId, int times)
+    {
+        var path = Path.Combine(AppContext.BaseDirectory, "LottieFiles", $"{nameId}.json");
+        await _lottiePlayer.PlayAsync(path, times);
+    }
+
+    // 提供停止播放的方法
+    public async Task StopLottiePlaybackAsync()
+    {
+        await _lottiePlayer.StopAsync();
     }
 
     private void SelectScreen(int csPin)
@@ -88,21 +156,22 @@ public class DefaultBotPlayer : IBotPlayer, IDisposable
                 Console.WriteLine($"Duration :{animation.Duration.TotalSeconds}");
                 for (int i = 0; i < frameCount; i++)
                 {
-                    var progress = animation.Duration.TotalSeconds / (frameCount - i);
+                    // 计算进度
+                    var progress = i / frameCount * animation.Duration.TotalSeconds;
                     var frame = RenderLottieFrame(animation, progress, 320, 240);
-                    list.Add(new FaceFrame
-                    {
-                        FrameBuffer = GetImageBytes(frame)
-                    });
+                    //list.Add(new FaceFrame
+                    //{
+                    //    FrameBuffer = GetImageBytes(frame)
+                    //});
                     //await frame.SaveAsPngAsync(Path.Combine($"frame_{i:D4}.png"));
-                    //await ShowImageToMainScreenAsync(frame);
+                    await ShowImageToMainScreenAsync(frame);
                 }
-                foreach (var item in list)
-                {
-                    SelectScreen(_csPin2Inch4);
-                    _lCD2Inch4?.ShowImageBytes(item.FrameBuffer);
-                    await Task.Delay(14);
-                }
+                //foreach (var item in list)
+                //{
+                //    SelectScreen(_csPin2Inch4);
+                //    _lCD2Inch4?.ShowImageBytes(item.FrameBuffer);
+                //    await Task.Delay(14);
+                //}
             }
         }
         finally
@@ -140,16 +209,27 @@ public class DefaultBotPlayer : IBotPlayer, IDisposable
         throw new NotImplementedException();
     }
 
-    public Task<bool> ShowImageToMainScreenAsync(Image<Bgra32> image)
+    public async Task<bool> ShowImageToMainScreenAsync(Image<Bgra32> image)
     {
-        image.Mutate(x => x.Rotate(90));
-        using Image<Bgr24> converted2inch4Image = image.CloneAs<Bgr24>();
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+        await _emojiSemaphore.WaitAsync();
+        try
         {
-            SelectScreen(_csPin2Inch4);
-            _lCD2Inch4?.ShowImageData(converted2inch4Image);
+            image.Mutate(x => x.Rotate(90));
+            using Image<Bgr24> converted2inch4Image = image.CloneAs<Bgr24>();
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            {
+                SelectScreen(_csPin2Inch4);
+                var data1 = _lCD2Inch4?.GetImageBytes(converted2inch4Image);
+                _lCD2Inch4?.ShowImageBytes(data1 ?? []);
+                await Task.Delay(5); // 短暂延时确保传输完成
+            }
+            return true;
         }
-        return Task.FromResult(true);
+        finally
+        {
+            _emojiSemaphore.Release();
+        }
+      
     }
 
     public async Task<bool> ShowImageToSubScreenAsync(Image<Bgra32> image)
@@ -162,7 +242,8 @@ public class DefaultBotPlayer : IBotPlayer, IDisposable
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
                 SelectScreen(_csPin1Inch47);
-                _lCD1Inch47?.ShowImageData(converted1inch47Image);
+                var data2 = _lCD1Inch47?.GetImageBytes(converted1inch47Image);
+                _lCD1Inch47?.ShowImageBytes(data2 ?? []);
             }
             return true;
         }
@@ -242,5 +323,35 @@ public class DefaultBotPlayer : IBotPlayer, IDisposable
     {
         Dispose(disposing: true);
         GC.SuppressFinalize(this);
+    }
+
+    public async Task ShowDateToSubScreenAsync()
+    {
+         //在这里添加你的定时任务逻辑
+        using (Image<Bgra32> image1inch47 = Image.Load<Bgra32>("Asserts/verdure.png"))
+        {
+            var collection = new FontCollection();
+            var family = collection.Add("Asserts/SmileySans-Oblique.ttf");
+            var font = family.CreateFont(24, FontStyle.Bold);
+
+            var textOptions = new TextOptions(font)
+            {
+                HorizontalAlignment = HorizontalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Center,
+                WrappingLength = 320
+            };
+            // 获取当前时间
+            string currentTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+            var displayText = $"当前时间:{currentTime}";
+
+            var size = TextMeasurer.MeasureSize(displayText, textOptions);
+
+            var position = new PointF((LCD1inch47.Height - size.Width) / 2, 8);
+            // 在图片上绘制时间
+            image1inch47.Mutate(ctx => ctx.DrawText(displayText, font, Color.White, position));
+
+            //await image1inch47.SaveAsPngAsync(Path.Combine($"frame_{DateTime.Now.Ticks}.png"));
+            await ShowImageToSubScreenAsync(image1inch47);
+        }
     }
 }
