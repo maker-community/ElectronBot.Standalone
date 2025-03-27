@@ -4,6 +4,7 @@ using BotSharp.Abstraction.Users;
 using BotSharp.Core;
 using BotSharp.Logger;
 using ElectronBot.Standalone.Core.Contracts;
+using ElectronBot.Standalone.Core.Handlers;
 using ElectronBot.Standalone.Core.Models;
 using ElectronBot.Standalone.Core.Repositories;
 using ElectronBot.Standalone.Core.Services;
@@ -36,10 +37,11 @@ builder.Services.AddSingleton(botSpeechSettings);
 
 builder.Services.AddScoped<BraincaseLiteDBContext>();
 builder.Services.AddSingleton<IBotPlayer, DefaultBotPlayer>();
-builder.Services.AddSingleton<IBotSpeech, DefaultBotSpeech>();
+builder.Services.AddSingleton<IBotSpeecher, AzBotSpeecher>();
+builder.Services.AddSingleton<IWakeWordListener, AzCognitiveServicesWakeWordListener>();
 builder.Services.AddScoped<IBotCopilot, DefaultBotCopilot>();
 builder.Services.AddScoped<IBraincaseRepository, BraincaseRepository>();
-builder.Services.AddHostedService<PeriodicTaskService>();
+builder.Services.AddHostedService<HostedService>();
 builder.Services.AddBotSharpCore(builder.Configuration, options =>
   {
       options.JsonSerializerOptions.Converters.Add(new RichContentJsonConverter());

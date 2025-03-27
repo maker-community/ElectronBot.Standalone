@@ -8,14 +8,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="botsharp.db" />
+    <None Remove="botsharp-log.db" />
   </ItemGroup>
 
   <ItemGroup>
     <Content Include="Asserts\SmileySans-Oblique.ttf">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="botsharp.db">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
@@ -28,6 +25,9 @@
     <ProjectReference Include="..\Verdure.Braincase.Copilot.Plugin\Verdure.Braincase.Copilot.Plugin.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <None Update="Asserts\bing.mp3">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="Asserts\verdure.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

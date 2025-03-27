@@ -9,4 +9,8 @@ public class BotSpeechSetting
     public string SpeechSynthesisLanguage { get; set; } = string.Empty;
     public string MicrophoneInput { get; set; } = string.Empty;
     public string KeywordModelFilePath { get; set; } = string.Empty;
+    public string AnswerText
+    {
+        get; set;
+    } = "你想让我做些什么呀";
 }
