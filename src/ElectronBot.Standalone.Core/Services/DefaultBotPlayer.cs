@@ -43,11 +43,11 @@ public class DefaultBotPlayer : IBotPlayer, IDisposable
 
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
         {
-            //_gpioController = new GpioController();
+            _gpioController = new GpioController();
             //_gpioController.OpenPin(_csPin2Inch4, PinMode.Output);
             //_gpioController.OpenPin(_csPin1Inch47, PinMode.Output);
 
-            var pwmBacklight = new SoftwarePwmChannel(pinNumber: 18, frequency: 1000);
+            var pwmBacklight = new SoftwarePwmChannel(pinNumber: 18, frequency: 1000, controller: _gpioController);
 
             pwmBacklight.Start();
 
@@ -63,7 +63,7 @@ public class DefaultBotPlayer : IBotPlayer, IDisposable
                 Mode = SpiMode.Mode0
             });
 
-            _lCD2Inch4 = new LCD2inch4(sender2inch4Device, pwmBacklight);
+            _lCD2Inch4 = new LCD2inch4(sender2inch4Device, pwmBacklight, _gpioController);
             _lCD2Inch4.Reset();
             _lCD2Inch4.Init();
             _lCD2Inch4.SetWindows(0, 0, LCD2inch4.Width, LCD2inch4.Height);
@@ -71,7 +71,7 @@ public class DefaultBotPlayer : IBotPlayer, IDisposable
 
             //_lCD2Inch4.BlDutyCycle(50);
 
-            _lCD1Inch47 = new LCD1inch47(sender1inch47Device, pwmBacklight);
+            _lCD1Inch47 = new LCD1inch47(sender1inch47Device, pwmBacklight, _gpioController);
             _lCD1Inch47.Init();
             _lCD1Inch47.SetWindows(0, 0, LCD1inch47.Width, LCD1inch47.Height);
             _lCD1Inch47.Clear();
@@ -79,14 +79,14 @@ public class DefaultBotPlayer : IBotPlayer, IDisposable
         }
     }
 
-    private  Task ProcessFrame(LottieFrameEventArgs frameData)
+    private Task ProcessFrame(LottieFrameEventArgs frameData)
     {
         return Task.CompletedTask;
     }
 
     private async void FrameRendered(object? sender, LottieFrameRenderedEventArgs e)
     {
-        if(e.Image != null)
+        if (e.Image != null)
         {
             await ShowImageToMainScreenAsync(e.Image);
         }
@@ -229,7 +229,7 @@ public class DefaultBotPlayer : IBotPlayer, IDisposable
         {
             _emojiSemaphore.Release();
         }
-      
+
     }
 
     public async Task<bool> ShowImageToSubScreenAsync(Image<Bgra32> image)
@@ -327,7 +327,7 @@ public class DefaultBotPlayer : IBotPlayer, IDisposable
 
     public async Task ShowDateToSubScreenAsync()
     {
-         //在这里添加你的定时任务逻辑
+        //在这里添加你的定时任务逻辑
         using (Image<Bgra32> image1inch47 = Image.Load<Bgra32>("Asserts/verdure.png"))
         {
             var collection = new FontCollection();
